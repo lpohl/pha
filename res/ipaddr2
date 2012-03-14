@@ -1,0 +1,32 @@
+#!/bin/bash
+
+if [ -z "$3" ]; then
+	echo "[*] need 3 parameters ($0 <start|stop> <ip/cidr> <interface>)"
+	exit 1
+fi
+
+IP=$(echo $2 |cut -d '/' -f 1)
+#echo $IP
+
+case "$1" in 
+	start)
+		ip address add $2 dev $3 2>/dev/null
+		arping -c 3 -U -I $3 $IP >/dev/null 2>&1 &
+	;;
+	stop)
+		ip address delete $2 dev $3 2>/dev/null
+	;;
+	check)
+		RET=$( ip address show	dev $3 |grep "$2" )
+		if [ -z "$RET" ]; then
+			exit 1
+			echo "IP $2 NOT set on Interface $3"
+		else
+			exit 0
+			echo "IP $2 is set on Interface $3"
+		fi
+	;;
+	*)
+	echo "[*] WHAT? what do you want from me? (start|stop)"
+	;;
+esac

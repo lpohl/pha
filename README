@@ -1,0 +1,25 @@
+
+	pha - Perl High Availabillity
+
+Software to keep a Scriptable Service alive on one of two Nodes.
+
+In this Development example it is an Virtual IP and the http Service scripted trough the Shell-Scripts in ./res/.
+
+Floders & Files: 
+./README
+./bin/pha-cli.pl
+./bin/pha-decider.pl
+./bin/pha-receiver.pl
+./bin/pha-sender.pl
+./etc/config
+./lib/pha.pm
+./res/
+./res/service
+./res/ipaddr
+./var/run/
+./var/log.receiver
+./var/log.sender
+./var/log.decider
+
+
+

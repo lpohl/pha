@@ -1,0 +1,41 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+	echo "[*] use: $0 <start|stop> <service>"
+	exit 1
+fi
+
+if [ ! -x "/etc/init.d/$2" ]; then
+	echo "[*] service script $2 not executeable"
+	exit 1
+fi
+
+BIN=$( grep "^prog=" /etc/init.d/$2|cut -d '=' -f 2 )
+
+case $1 in 
+	start)
+		# service eval works right now only on redhat systems OK|FAILED output of initscripts
+		/etc/init.d/$2 start 2>&1|grep -q OK
+		exit $?
+	;;
+	stop)
+		# service eval works right now only on redhat systems OK|FAILED output of initscripts
+		/etc/init.d/$2 stop 2>&1|grep -q OK
+		exit $?
+	;;
+	check)	
+		GR=$(ps -ef |grep "$BIN" |grep -v grep|grep -v "service check")
+		if [ -z "$GR" ]; then 
+			exit 1
+			echo "Service $2 (binary: $BIN) NOT Running"
+		else
+			exit 0
+			echo "Service $2 (binary: $BIN) is Running"
+		fi
+	;;
+	*)
+	echo "[*] WHAT? what do you want from me? (start|stop)"
+	exit 1
+	;;
+esac
+

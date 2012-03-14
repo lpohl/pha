@@ -1,0 +1,39 @@
+#
+# Globales #
+#
+DEBUG=1
+VERSION=1
+INSTALLDIR=/opt/pha
+LOGPATH=/opt/pha/var/log
+DAEMON=0
+RTMODVAL=3
+PINGTIMEOUT=2.1
+PORT=4711
+
+# Cluster Nodes und deren ID's (ID 1 = 1. Position in der Liste usw...)
+NODES=lb1 lb2
+
+# Default GW (network connectivity test by icmp)
+GW=192.168.42.1
+
+#
+# Ressouren #
+#
+# Definition der zu behandelden Ressourcen Scripts und deren Parameter
+# z.B. /opt/klaster/res/ipaddr start 10.0.0.20/24 eth0
+#      /opt/klaster/res/service start httpd
+
+RES_test=/ONLINE
+RES_ipaddr=192.168.42.20/24 eth0
+RES_service=httpd
+
+#RES_ipaddr2="10.201.26.160 eth0"
+
+# Possible obsolete
+MOVE_TO_HIGH_ID=0
+HB_USE_STORABLE=1
+ALLOW_TIMEDIFF=5
+INTERVALL=5
+STARTDELAY=3
+SWITCHDELAY=2
+

@@ -1,0 +1,31 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+	echo "[*] use: $0 <start|stop> <service>"
+	exit 1
+fi
+
+case $1 in 
+	start)
+		touch $2
+		exit $?
+	;;
+	stop)
+		rm $2
+		exit $?
+	;;
+	check)	
+		if [ -f "$2" ]; then 
+			exit 0
+			echo "Test Service $2 NOT Running"
+		else
+			exit 1
+			echo "Test Service $2 is Running"
+		fi
+	;;
+	*)
+	echo "[*] WHAT? what do you want from me? (start|stop)"
+	exit 1
+	;;
+esac
+
