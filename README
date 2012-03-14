@@ -23,3 +23,29 @@ Floders & Files:
 
 
 
+# set a Shell Prompt Status indicator:
+
+getPromptStatus()
+{
+        ls /opt/pha/var/run/{receiver,sender,decider} >/dev/null 2>&1
+        if [ $? != 0 ]; then
+                status='NOTRUNNING'
+        else
+                if [ "$(/opt/pha/bin/getst.pl)" == "ONLINE" ]; then
+                        status='Active'
+                else
+                        status='Standby'
+                fi
+        fi
+        echo $status
+}
+# the PS1 is to set somewhere in bashrc  or profile, some examples:
+
+# debian 
+# PS1="${debian_chroot:+($debian_chroot)}\u@\h:[\$(getPromptStatus)] \w\$ "
+
+# RHEL 5 like
+# PS1="[\u@\h:\$(getPromptStatus)] \W \\$ "
+
+
+
