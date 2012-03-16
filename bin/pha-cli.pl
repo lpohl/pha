@@ -41,10 +41,10 @@ while(1) {
 		stop_service('receiver');
 	} elsif ($in =~ /^re_start/) {
 		system($CONFIG{INSTALLDIR}."/bin/pha-receiver.pl");
-	} elsif ($in =~ /^de_stop/) {
-                stop_service('decider');
-        } elsif ($in =~ /^de_start/) {
-                system($CONFIG{INSTALLDIR}."/bin/pha-decider.pl");
+	} elsif ($in =~ /^su_stop/) {
+                stop_service('supervise');
+        } elsif ($in =~ /^su_start/) {
+                system($CONFIG{INSTALLDIR}."/bin/pha-supervise.pl");
 
 	} elsif ($in =~ /^quit$|^exit$|^q$/) {
 		print "Bye!\n";

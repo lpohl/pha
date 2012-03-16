@@ -8,7 +8,7 @@ sub sighandler;
 
 # MAIN()
 
-open(FH,">",$CONFIG{INSTALLDIR}."/var/run/decider") or die $!;
+open(FH,">",$CONFIG{INSTALLDIR}."/var/run/supervise") or die $!;
 	print FH $$;
 close(FH);
 
@@ -27,6 +27,13 @@ if ($CONFIG{DAEMON} == 1) {
         } else {
                 chdir ($CONFIG{INSTALLDIR});
         }
+}
+
+if (! -f $CONFIG{INSTALLDIR}."/var/run/receiver") {
+	mylog "Achtung reciver Prozess läuft nicht!";
+}
+if (! -f $CONFIG{INSTALLDIR}."/var/run/sender") {
+	mylog "Achtung sender Prozess läuft nicht!";
 }
 
 while (1) {
@@ -63,8 +70,7 @@ sub sighandler {
 
         # raus, falls SIGINT
         if ($signal eq "INT") {
-                $SRVsocket->close();
-                system("rm -f $CONFIG{INSTALLDIR}/var/run/decider >/dev/null 2>&1");
+                system("rm -f $CONFIG{INSTALLDIR}/var/run/supervise >/dev/null 2>&1");
                 exit 0
         } # weiter in endlos-schleife sonst.
 }
