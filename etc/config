@@ -1,7 +1,7 @@
 #
 # Globales #
 #
-DEBUG=1
+DEBUG=0
 VERSION=1
 INSTALLDIR=/opt/pha
 LOGPATH=/opt/pha/var/log

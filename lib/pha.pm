@@ -189,7 +189,7 @@ sub get_peer_hostname {
 	return $CONFIG{NODES}[$NODES{peer}];
 }
 sub get_local_hostname {
-	return $CONFIG{NODES}[$NODES{peer}];
+	return $CONFIG{NODES}[$NODES{local}];
 }
 sub get_pid {
 	my $prg = shift;
