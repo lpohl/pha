@@ -42,8 +42,10 @@ sub init_sender {
                                                 #PeerAddr => inet_ntoa(INADDR_BROADCAST)) or
 
 	open(FH,">",$CONFIG{INSTALLDIR}."/var/run/sender") or die $!;
-	print FH $$;
+		print FH $$;
 	close(FH);
+
+	mylog "$0 process startet";
         # udp Server with own prozess
         while (1) {
 		udp_send();

@@ -15,42 +15,80 @@ $SIG{'TERM'} = 'sighandler';
 open(FH,">",$CONFIG{INSTALLDIR}."/var/run/cli") or die $!;
 print FH $$;
 close(FH);
-mylog "$0 Started";
+mylog "$0 started";
 
 
 # cli loop
 while(1) {
-	print get_local_hostname."> ";
+	my $state;
+	%ST = read_status();
+	if ($ST{STATUS} eq "ONLINE") {
+		$state = "Active";
+	}
+	elsif ($ST{STATUS} eq "OFFLINE") {
+		$state = "Standby";
+	}
+	print "[".get_local_hostname.":$state] > ";
 	my $in = <STDIN>;
 
 	if ($in =~ /^help$|^HELP$|^\?$|^h$/) {
-		print "more to come!\n";
-	} elsif ($in =~ /^se_dis/) {
+		print <<EOS
+more to come!
+EOS
+;
+	} elsif ($in =~ /^se_dis|^forceoffline|^fo|^offline/) {
 		%ST = read_status();
 		$ST{SENDER_RUN} = 0;
 		write_status();
-	} elsif ($in =~ /^se_en/) {
+	} elsif ($in =~ /^se_en|^online|^enable/) {
 		%ST = read_status();
 		$ST{SENDER_RUN} = 1;
 		write_status();
-	} elsif ($in =~ /^se_stop/) {
+	} elsif ($in =~ /^start/) {
+		start_service('sender');
+		start_service('receiver');
+		start_service('supervise');
+	} elsif ($in =~ /^stop/) {
 		stop_service('sender');
-	} elsif ($in =~ /^se_start/) {
-		system($CONFIG{INSTALLDIR}."/bin/pha-sender.pl");
-	} elsif ($in =~ /^re_stop/) {
 		stop_service('receiver');
-	} elsif ($in =~ /^re_start/) {
-		system($CONFIG{INSTALLDIR}."/bin/pha-receiver.pl");
-	} elsif ($in =~ /^su_stop/) {
+		stop_service('supervise');
+	} elsif ($in =~ /^se_sto/) {
+		stop_service('sender');
+	} elsif ($in =~ /^se_sta/) {
+		start_service('sender');
+	} elsif ($in =~ /^re_sto/) {
+		stop_service('receiver');
+	} elsif ($in =~ /^re_sta/) {
+		start_service('receiver');
+	} elsif ($in =~ /^su_sto/) {
                 stop_service('supervise');
-        } elsif ($in =~ /^su_start/) {
-                system($CONFIG{INSTALLDIR}."/bin/pha-supervise.pl");
-
+        } elsif ($in =~ /^su_sta/) {
+		start_service('supervise');
+        } elsif ($in =~ /^status|^stat/) {
+		dump_status();
+		print "sender: \t".get_pid('sender')."\n";
+		print "receiver:\t".get_pid('receiver')."\n";
+		print "supervise:\t".get_pid('supervise')."\n";
+        } elsif ($in =~ /^res$/) {
+		print "use: res <list|stop|start> [<resname>]\n";
+        } elsif ($in =~ /^res (\w+) (\w+)$|^res (\w+)$/) {
+		if ($1 eq "list") {
+			foreach my $key (keys %CONFIG) {
+               			if ($key !~ /RES_(\w+)/) {next;}
+				print $1."\n";
+			}
+		} elsif ($1 eq "start" and $2) {
+			start_res_cli($2);
+		} elsif ($1 eq "stop" and $2)  { 
+			stop_res_cli($2);
+		}
+        } elsif ($in =~ /^show conf|^conf/) {
+		dump_config();
 	} elsif ($in =~ /^quit$|^exit$|^q$/) {
 		print "Bye!\n";
 		last;
 	} else {
-		print "wtf? try 'help'\n";
+		#print "wtf? try 'help'\n";
 	}
 	dump_status() if ($CONFIG{DEBUG} == 1);
 }

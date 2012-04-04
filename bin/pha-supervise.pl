@@ -7,11 +7,6 @@ sub sighandler;
 
 
 # MAIN()
-
-open(FH,">",$CONFIG{INSTALLDIR}."/var/run/supervise") or die $!;
-	print FH $$;
-close(FH);
-
 mylog "$0 Started";
 
 # fange SIGINT, SIGTERM ab:
@@ -29,11 +24,15 @@ if ($CONFIG{DAEMON} == 1) {
         }
 }
 
+open(FH,">",$CONFIG{INSTALLDIR}."/var/run/supervise") or die $!;
+	print FH $$;
+close(FH);
+
 if (! -f $CONFIG{INSTALLDIR}."/var/run/receiver") {
-	mylog "Achtung reciver Prozess läuft nicht!";
+	mylog "[*] reciver prozess not running";
 }
 if (! -f $CONFIG{INSTALLDIR}."/var/run/sender") {
-	mylog "Achtung sender Prozess läuft nicht!";
+	mylog "[*] sender prozess not running";
 }
 
 while (1) {

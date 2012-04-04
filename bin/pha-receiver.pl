@@ -27,6 +27,7 @@ if ($CONFIG{DAEMON} == 1) {
 }
 
 init_receiver();
+
 exit 0;
 
 #
@@ -53,11 +54,14 @@ sub init_receiver {
         $ST{RECEIVER_IN} = undef;
         write_status();
 
+	mylog "$0 process startet";
+
         while (1) {
                 udp_server();
                 myusleep(150)
         }
 }
+
 
 sub udp_server {
         my ($sock,$buf,$bytes_read);

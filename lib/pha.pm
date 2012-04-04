@@ -13,8 +13,8 @@ use Net::Ping;
 require Exporter;
 use vars qw( @ISA @EXPORT @EXPORT_OK );
 @ISA = qw(Exporter AutoLoader);
-@EXPORT 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service icmp_ping check_link_local check_defaultroute check_res );
-@EXPORT_OK 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service icmp_ping check_link_local check_defaultroute check_res ); 
+@EXPORT 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli);
+@EXPORT_OK 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli); 
 
 ##########################################
 # ggf. Konfigurations Dateipfad anpassen #
@@ -27,10 +27,13 @@ our %CONFIG		= read_configfile("/opt/pha/etc/config");
 ##############################################################
 
 # possible needed once, when no var/status.dat is around 
-#our %ST 			= (SENDER_RUN => 1, SENDER_TS => 0, RECEIVER_IN => undef); 
+our %ST 	= ( SENDER_RUN => 1, SENDER_TS => 0, RECEIVER_IN => undef ); 
 
-our %ST 			= read_status();
-our %NODES			= get_nodes();
+if (-f $CONFIG{INSTALLDIR}.'/var/status.dat') {
+	%ST = read_status();
+}
+
+our %NODES	= get_nodes();
 
 #
 # gemeinsame Funktionen (pha-*.pl)
@@ -42,6 +45,18 @@ sub write_status {
 sub read_status {
 	my $ref = Storable::lock_retrieve $CONFIG{INSTALLDIR}.'/var/status.dat';
 	return %{$ref}; 
+}
+sub update_status {
+	my $nref = shift || return;
+
+	%ST = read_status();	
+	foreach my $k (keys %$nref) {
+		# uninitialised warnung ggf. entfernen...
+		if ($ST{$k} ne $nref->{$k}) {
+			$ST{$k} = $nref->{$k};
+		}
+	}
+	write_status();
 }
 
 sub write_conf {
@@ -150,20 +165,48 @@ sub check_res {
                         mylog "check_res(): Ressource '$CONFIG{INSTALLDIR}/res/$res' is UP";
                         $st{"RES_$res"} = "UP";
                 }
+		update_status(\%st);	
         }
+	# really?
 	if ($down >0) {
         	$st{"STATUS"} = "OFFLINE";
-		foreach my $r (keys %st) {
-			if ($r =~ /^RES_/) {
-				$log .= "$r:".$st{$r}." ";
-			}
-		}
+        	$st{"SENDER_RUN"} = "0";
+		#foreach my $r (keys %st) {
+		#	if ($r =~ /^RES_/) {
+		#		$log .= "$r:".$st{$r}." ";
+		#	}
+		#}
 	} else {
 	        $st{"STATUS"} = "ONLINE";
+        	$st{"SENDER_RUN"} = "1";
 	}
-	%ST = read_status();
-	%ST = %st;
-	write_status();
+
+	# we must react faster
+	update_status(\%st);	
+}
+sub start_res_cli {
+	my $res = shift || return -1;
+	
+	my $key = "RES_".$res;
+        my $opt = undef;
+        $opt = join (" ", @{$CONFIG{$key}}) if ref($CONFIG{$key});;
+        $opt = $CONFIG{$key} if not ref($CONFIG{$key});
+        my $r = system("$CONFIG{INSTALLDIR}/res/$res start $opt");
+	print "$CONFIG{INSTALLDIR}/res/$res start $opt    res:$r\n" if ($CONFIG{DEBUG} == 1); 
+        if ($r != 0) { mylog "[ERR] starting service $res" }
+	else { print "OK\n"; }
+}
+sub stop_res_cli {
+	my $res = shift || return -1;
+	
+	my $key = "RES_".$res;
+        my $opt = undef;
+        $opt = join (" ", @{$CONFIG{$key}}) if ref($CONFIG{$key});;
+        $opt = $CONFIG{$key} if not ref($CONFIG{$key});
+        my $r = system("$CONFIG{INSTALLDIR}/res/$res stop $opt");
+	print "$CONFIG{INSTALLDIR}/res/$res stop $opt   ret:$r\n" if ($CONFIG{DEBUG} == 1);
+        if ($r != 0) { mylog "[ERR] stoping service $res" }
+	else { print "OK\n"; }
 }
 
 sub get_nodes {
@@ -194,23 +237,36 @@ sub get_local_hostname {
 sub get_pid {
 	my $prg = shift;
 	my $file = undef;
+	my $pid = 0;
 
-	if ($prg =~ /sender|receiver|cli/) {
+	if ($prg =~ /sender|receiver|cli|supervise/) {
 		$file = $CONFIG{INSTALLDIR}."/var/run/$prg";
 	} else {
 		$0 =~ /(pha-)(.*)\.pl/;
 		$file = $CONFIG{INSTALLDIR}."/var/run/$2";
 	}
-	open (FH,"<",$file) or mylog $!;
-	my $pid = <FH>;
-	close (FH);
-
+	if (-f $file) {
+		open (FH,"<",$file) or mylog $!;
+		$pid = <FH>;
+		close (FH);
+	}
 	return $pid;
 }
 sub stop_service {
 	my $srv = shift || return;
 	mylog "stop_service: $srv  pid: ".get_pid($srv);
-	kill 9, get_pid($srv);
+	#kill 9, get_pid($srv); 9 == KILL onyl in INT sig cleanup is done
+	#kill 2, get_pid($srv);
+	my $pid =  get_pid($srv);
+	if ($pid != 0) {
+		kill 'INT', $pid;
+	}
+}
+sub start_service {
+	my $srv = shift || return;
+	mylog "start_service: $srv";
+	my $r = system($CONFIG{INSTALLDIR}."/bin/pha-$srv.pl");
+	mylog "start_service: system ret: $r";
 }
 sub myusleep($) {
 	my $msec = shift;
