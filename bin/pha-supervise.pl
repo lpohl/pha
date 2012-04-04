@@ -52,7 +52,7 @@ while (1) {
 	
 	check_res();
 
-	myusleep(750);
+	myusleep(1000);
 }
 
 exit 0;

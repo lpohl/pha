@@ -27,11 +27,11 @@ Floders & Files:
 
 getPromptStatus()
 {
-        ls /opt/pha/var/run/{receiver,sender,decider} >/dev/null 2>&1
+        ls /opt/pha/var/run/{receiver,sender,supervise} >/dev/null 2>&1
         if [ $? != 0 ]; then
                 status='NOTRUNNING'
         else
-                if [ "$(/opt/pha/bin/getst.pl)" == "ONLINE" ]; then
+                if [ "$(/opt/pha/bin/getst.pl 2>/dev/null)" == "ONLINE" ]; then
                         status='Active'
                 else
                         status='Standby'

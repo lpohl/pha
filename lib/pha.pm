@@ -13,8 +13,8 @@ use Net::Ping;
 require Exporter;
 use vars qw( @ISA @EXPORT @EXPORT_OK );
 @ISA = qw(Exporter AutoLoader);
-@EXPORT 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service icmp_ping check_link_local check_defaultroute );
-@EXPORT_OK 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service icmp_ping check_link_local check_defaultroute ); 
+@EXPORT 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service icmp_ping check_link_local check_defaultroute check_res );
+@EXPORT_OK 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service icmp_ping check_link_local check_defaultroute check_res ); 
 
 ##########################################
 # ggf. Konfigurations Dateipfad anpassen #
@@ -131,24 +131,39 @@ sub check_defaultroute {
 
 sub check_res {
         # Check Ressources with the corresponding script action "check"
+	my %st = ();
+	my $down = 0;
+	my $log = undef;
         foreach my $key (keys %CONFIG) {
 		if ($key !~ /RES_(.*)/) {next;}
 		my $res = $1;
-                my $opt = $CONFIG{$key};
-
+		my $opt = undef;
+		$opt = join (" ", @{$CONFIG{$key}}) if ref($CONFIG{$key});;
+		$opt = $CONFIG{$key} if not ref($CONFIG{$key});
+		
                 my $r = system("$CONFIG{INSTALLDIR}/res/$res check $opt");
-		%ST = read_status();
                 if ($r != 0) {
                         mylog "check_res(): Ressource '$CONFIG{INSTALLDIR}/res/$res' is DOWN";
-                        $ST{"RES_$res"} = "DOWN";
-                        $ST{"STATUS"} = "OFFLINE";
+                        $st{"RES_$res"} = "DOWN";
+			$down += 1;
                 } else {
                         mylog "check_res(): Ressource '$CONFIG{INSTALLDIR}/res/$res' is UP";
-                        $ST{"RES_$res"} = "UP";
-                        $ST{"STATUS"} = "ONLINE";
+                        $st{"RES_$res"} = "UP";
                 }
-		write_status();
         }
+	if ($down >0) {
+        	$st{"STATUS"} = "OFFLINE";
+		foreach my $r (keys %st) {
+			if ($r =~ /^RES_/) {
+				$log .= "$r:".$st{$r}." ";
+			}
+		}
+	} else {
+	        $st{"STATUS"} = "ONLINE";
+	}
+	%ST = read_status();
+	%ST = %st;
+	write_status();
 }
 
 sub get_nodes {
@@ -157,10 +172,10 @@ sub get_nodes {
 	foreach my $n (@{$CONFIG{NODES}}) {
 		if ($n eq hostname()) {
 			$nodes{'local'} = $i;
-			print STDERR "[DBG] local id: $i   local hostname: $n\n" if ($CONFIG{DEBUG} == 1);
+			print STDERR "[DBG] local id: $i   local hostname: $n\n" if ($CONFIG{DEBUG});
 		} else {
 			$nodes{'peer'} = $i;
-			print STDERR "[DBG] peer  id: $i   peer  hostname: $n\n" if ($CONFIG{DEBUG} == 1);
+			print STDERR "[DBG] peer  id: $i   peer  hostname: $n\n" if ($CONFIG{DEBUG});
 		}
 		#$nodes{$n} = $i;
 		$i++;
