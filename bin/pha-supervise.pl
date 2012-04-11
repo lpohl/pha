@@ -35,55 +35,64 @@ if (! -f $CONFIG{INSTALLDIR}."/var/run/sender") {
 	mylog "[*] sender prozess not running";
 }
 
-my $docnt=0;
+my $docnt = 0;
+my $down = 0;
 while (1) {
-	# default gw check?
-	# 
-	check_defaultroute();
+	## default gw check?
+	#if(check_defaultroute()) {
+	#
+	#} else {
+	#	mylog "ERROR no Default GW set!"; 
+	#}
+	#
+	## Ping check Gateway
+        #if (icmp_ping($CONFIG{GW}) > 0) {
+	#	
+        #} else { 
+	#	mylog "Default GW unreachable!"; 
+	#}
+	## Ping check PeerHost
+        #if (icmp_ping(get_peer_hostname()) > 0) {
+	#	 
+        #} else { 
+	#	mylog "Peer Host unreachable!"; 
+	#}
 
-	# Ping check Gateway
-        if (icmp_ping($CONFIG{GW}) > 0) {
-		
-        } else { 
-		mylog "Default GW unreachable!"; 
-	}
-	# Ping check PeerHost
-        if (icmp_ping(get_peer_hostname()) > 0) {
-		 
-        } else { 
-		mylog "Peer Host unreachable!"; 
-	}
 	# check Ressouces
-	check_res();
+	$down = check_res();
+	if ($down == 0) {
+		$st{STATUS} = 'ONLINE';
+		update_status(\%st);
+	}
 
-	%ST = read_status();
-	if ($ST{STATUS} eq "OFFLINE" and not defined($ST{RECEIVER_IN})) {
+	%st = read_status();
+	if ($st{STATUS} eq "OFFLINE" and not defined($st{RECEIVER_IN})) {
 		mylog "[*] OFFLINE an no new Data on Receiver, possible Cluster DOWN!";
 		# adding some delay to change
-		$docnt++;
-		if ($docnt>1) {
-			mylog "[*] starting resources!";
-			foreach my $key (keys %CONFIG) {
-        	                if ($key !~ /RES_(\w+)/) {next;}
-                		start_res_cli($1);
-	                }
-			$docnt = 0;
-		}
+		mylog "[*] starting resources!";
+		%st{STATUS} = 'PROGRESS';
+		update_status(\%st);
+		foreach my $key (keys %CONFIG) {
+        	        if ($key !~ /RES_(\w+)/) {next;}
+                	start_res_cli($1);
+	        }
+		%st{STATUS} = 'ONLINE';
+		update_status(\%st);
 	} 
-	if ($ST{STATUS} eq "OFFLINE" and $ST{RECEIVER_IN} eq "OFFLINE") {
-		$docnt++;
-		if ($docnt>1) {
-			mylog "OK remote is offline problem, starting resources!";
-	                foreach my $key (keys %CONFIG) {
-		                if ($key !~ /RES_(\w+)/) {next;}
-        		        start_res_cli($1);
-	                }
-			$docnt = 0;
-		}
+	if ($st{STATUS} eq "OFFLINE" and $st{RECEIVER_IN} eq "OFFLINE") {
+		mylog "OK remote is offline problem, starting resources!";
+		%st{STATUS} = 'PROGRESS';
+		update_status(\%st);
+	        foreach my $key (keys %CONFIG) {
+			if ($key !~ /RES_(\w+)/) {next;}
+        		start_res_cli($1);
+	        }
+		%st{STATUS} = 'ONLINE';
+		update_status(\%st);
 	}
 	
 	# split brain both active!? no good
-	if ($ST{STATUS} eq "ONLINE" and $ST{RECEIVER_IN} eq "ONLINE") {
+	if ($st{STATUS} eq "ONLINE" and $st{RECEIVER_IN} eq "ONLINE") {
 		mylog "[*] stopping resources!";
                 foreach my $key (keys %CONFIG) {
                 	if ($key !~ /RES_(\w+)/) {next;}
@@ -91,8 +100,8 @@ while (1) {
                 }
 	}
 
-	if ($ST{STATUS} eq "OFFLINE" and $ST{RECEIVER_IN} eq "ONLINE") {
-		
+	if ($st{STATUS} eq "PROGRESS" or $st{RECEIVER_IN} eq "PROGRESS") {
+		mylog "somthing is going on...";
 	}
 	# Wait a bit
 	myusleep($CONFIG{SUPERVISE_INT});

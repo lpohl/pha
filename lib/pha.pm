@@ -174,23 +174,9 @@ sub check_res {
                 }
 		update_status(\%st);	
         }
-	# really?
-	if ($down >0) {
-        	$st{"STATUS"} = "OFFLINE";
-        	#$st{"SENDER_RUN"} = "0";
-
-		#foreach my $r (keys %st) {
-		#	if ($r =~ /^RES_/) {
-		#		$log .= "$r:".$st{$r}." ";
-		#	}
-		#}
-	} else {
-	        $st{"STATUS"} = "ONLINE";
-        	$st{"SENDER_RUN"} = "1";
-	}
-	# we must react faster
-	update_status(\%st);	
+	return $down;
 }
+
 sub start_res_cli {
 	my $res = shift || return -1;
 	
