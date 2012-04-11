@@ -23,6 +23,7 @@ if ($CONFIG{DAEMON} == 1) {
         }
 }
 
+my $Timeout=30*5;
 init_sender();
 
 #
@@ -65,6 +66,13 @@ sub udp_send {
 	        $CLsocket->send($msg, 0) or mylog "udp_send() ".$!;
 		# $! == "No route to host" ^= peer firewalled
 		# $! == "Connection refused" ^= peer receiver Port down
+	} else {
+		if ($Timeout==0) {
+			update_status({SENDER_RUN=>1});
+			$Timeout = 30*5;
+		} else {
+			$Timeout--;
+		}
 	}
 	# Old way
         # Send Data as Storable

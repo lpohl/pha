@@ -36,30 +36,26 @@ if (! -f $CONFIG{INSTALLDIR}."/var/run/sender") {
 }
 
 my $docnt = 0;
+my $errcnt = 0;
 my $down = 0;
 while (1) {
 	my %st = ();
 	## default gw check?
 	if(check_defaultroute()) {
-
+		# hier muss noch ein softer switch rein
 	} else {
-		update_status({SENDER_RUN=>0}); 
+		if ($errcnt>1) { update_status({SENDER_RUN=>0}); $errcnt = 0; } 
+		else { $errcnt++; }
 		mylog "ERROR no Default GW set!"; 
 	}
 	
 	## Ping check Gateway
         if (icmp_ping($CONFIG{GW}) > 0) {
-	
+		# hier muss noch ein softer switch rein
         } else {
 		update_status({SENDER_RUN=>0}); 
 		mylog "Default GW unreachable!"; 
 	}
-	## Ping check PeerHost
-        #if (icmp_ping(get_peer_hostname()) > 0) {
-	#	 
-        #} else { 
-	#	mylog "Peer Host unreachable!"; 
-	#}
 
 	# check Ressouces
 	$down = check_res();
@@ -85,9 +81,6 @@ while (1) {
 #		mylog "somthing is going on... local";
 #	}
 
-
-
-	#if ($st{STATUS} eq "OFFLINE" and not defined($st{RECEIVER_IN})) {
 	if (not defined($st{RECEIVER_IN})) {
 		goto WAIT if ($st{STATUS} eq "ONLINE");
 		mylog "[*] no new Data on Receiver";
