@@ -35,6 +35,7 @@ if (! -f $CONFIG{INSTALLDIR}."/var/run/sender") {
 	mylog "[*] sender prozess not running";
 }
 
+my $docnt=0;
 while (1) {
 	# default gw check?
 	# 
@@ -44,31 +45,36 @@ while (1) {
         if (icmp_ping($CONFIG{GW}) > 0) {
 		
         } else { 
-		mylog "Default GW nicht erreichbar!"; 
+		mylog "Default GW unreachable!"; 
 	}
-		
 	# Ping check PeerHost
         if (icmp_ping(get_peer_hostname()) > 0) {
 		 
         } else { 
-		mylog "Peer Host nicht erreichbar!"; 
+		mylog "Peer Host unreachable!"; 
 	}
-	
+	# check Ressouces
 	check_res();
 
 	%ST = read_status();
 	if ($ST{STATUS} eq "OFFLINE" and not defined($ST{RECEIVER_IN})) {
 		mylog "[*] OFFLINE an no new Data on Receiver, possible Cluster DOWN!";
-		mylog "[*] starting resources!";
-		foreach my $key (keys %CONFIG) {
-                        if ($key !~ /RES_(\w+)/) {next;}
-                	start_res_cli($1);
-                }
+		# adding some delay to change
+		$docnt++;
+		if ($docnt>1) {
+			mylog "[*] starting resources!";
+			foreach my $key (keys %CONFIG) {
+        	                if ($key !~ /RES_(\w+)/) {next;}
+                		start_res_cli($1);
+	                }
+			$docnt = 0;
+		}
 	} 
 	if ($ST{STATUS} eq "OFFLINE" and defined($ST{RECEIVER_IN})) {
-		mylog "Offline but Receiver is getting ok data! no problem"
+		mylog "OK remote is active no problem"
 	}
-	mylog "rec_in: ".$ST{RECEIVER_IN};
+	#mylog "rec_in: ".$ST{RECEIVER_IN};
+
 	# Wait a bit
 	myusleep($CONFIG{SUPERVISE_INT});
 }
