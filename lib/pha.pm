@@ -187,7 +187,7 @@ sub start_res_cli {
         my $r = system("$CONFIG{INSTALLDIR}/res/$res start $opt");
 	print "$CONFIG{INSTALLDIR}/res/$res start $opt    res:$r\n" if ($CONFIG{DEBUG} == 1); 
         if ($r != 0) { mylog "start_res_cli() [ERR] starting service $res" }
-	else { mylog "start_res_cli() [OK]\n"; }
+	else { mylog "start_res_cli() [OK]"; }
 }
 sub stop_res_cli {
 	my $res = shift || return -1;
@@ -199,7 +199,7 @@ sub stop_res_cli {
         my $r = system("$CONFIG{INSTALLDIR}/res/$res stop $opt");
 	print "$CONFIG{INSTALLDIR}/res/$res stop $opt   ret:$r\n" if ($CONFIG{DEBUG} == 1);
         if ($r != 0) { mylog "stop_res_cli() [ERR] stoping service $res" }
-	else { mylog "stop_res_cli() [OK]\n"; }
+	else { mylog "stop_res_cli() [OK]"; }
 }
 
 sub get_nodes {

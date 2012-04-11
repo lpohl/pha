@@ -89,12 +89,17 @@ while (1) {
 		mylog "OK remote is offline problem, starting resources!";
 		$st{STATUS} = 'PROGRESS';
 		update_status(\%st);
-	        foreach my $key (keys %CONFIG) {
-			if ($key !~ /RES_(\w+)/) {next;}
-        		start_res_cli($1);
-	        }
-		$st{STATUS} = 'ONLINE';
-		update_status(\%st);
+		if ($docnt > 2) {
+		        foreach my $key (keys %CONFIG) {
+				if ($key !~ /RES_(\w+)/) {next;}
+        			start_res_cli($1);
+		        }
+			$st{STATUS} = 'ONLINE';
+			update_status(\%st);
+			$docnt=0;
+		} else {
+			$docnt++;
+		}
 	}
 	
 	# split brain both active!? no good
