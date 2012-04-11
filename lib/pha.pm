@@ -177,7 +177,8 @@ sub check_res {
 	# really?
 	if ($down >0) {
         	$st{"STATUS"} = "OFFLINE";
-        	$st{"SENDER_RUN"} = "0";
+        	#$st{"SENDER_RUN"} = "0";
+
 		#foreach my $r (keys %st) {
 		#	if ($r =~ /^RES_/) {
 		#		$log .= "$r:".$st{$r}." ";
