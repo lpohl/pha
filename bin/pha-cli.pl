@@ -56,12 +56,8 @@ while(1) {
 start	start all services (sender,receiver,supervise)
 stop	stop all services (sender,receiver,supervise)	
 
-se_sta	start sender service
-se_sto	stop sender service
-re_sta	start receiver service
-re_sto	stop receiver service
-su_sta	start supervise service
-su_sto	stop supervise service
+disable stop sender, this WILL trigger a failover to other side
+enable  enable sender
 
 res	Manage Ressources (parameter list|stop|start)
 status	dump contents of var/status.dat and show daemons PIDs
@@ -70,12 +66,12 @@ quit|q	leave pha-cli shell
 
 EOS
 ;
-	} elsif ($in =~ /^se_dis|^disable$|^forceoffline$|^fo$|^offline$/) {
-		$st{SENDER_RUN} = 0;
-		update_status(\%st);
-	} elsif ($in =~ /^se_en|^online$|^enable$|^on$/) {
-		$st{SENDER_RUN} = 1;
-		update_status(\%st);
+	} elsif ($in =~ /^dis|^off/) {
+		print "stop sending Heartbeat\n";
+		update_status({SENDER_RUN=>0});
+	} elsif ($in =~ /^ena|^on/) {
+		print "starting to send Heartbeat\”";
+		update_status({SENDER_RUN=>1});
 	} elsif ($in =~ /^start/) {
 		start_service('sender');
 		start_service('receiver');
