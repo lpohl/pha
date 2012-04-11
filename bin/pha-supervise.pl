@@ -65,6 +65,10 @@ while (1) {
 		$st{STATUS} = 'ONLINE';
 		update_status(\%st);
 		mylog "supervise: down == 0 STATUS=ONLINE";
+	} else {
+		$st{STATUS} = 'OFFLINE';
+		update_status(\%st);
+		mylog "supervise: down == $down STATUS=OFFLINE";
 	}
 
 	%st = read_status();

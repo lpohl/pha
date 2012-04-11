@@ -54,7 +54,6 @@ sub update_status {
 		# die ganze logging un concat sachen machten warnungen 
 		# die einfache zuweisung ist kein problem!
 		$ST{$k} = $nref->{$k};
-		print STDERR "update_status key:$k\n";
 		
 		# uninitialised warnung entfernen...
 		#$ST{$k} = '' unless exists $ST{$k};
@@ -187,8 +186,8 @@ sub start_res_cli {
         $opt = $CONFIG{$key} if not ref($CONFIG{$key});
         my $r = system("$CONFIG{INSTALLDIR}/res/$res start $opt");
 	print "$CONFIG{INSTALLDIR}/res/$res start $opt    res:$r\n" if ($CONFIG{DEBUG} == 1); 
-        if ($r != 0) { mylog "[ERR] starting service $res" }
-	else { print "OK\n"; }
+        if ($r != 0) { mylog "start_res_cli() [ERR] starting service $res" }
+	else { mylog "start_res_cli() [OK]\n"; }
 }
 sub stop_res_cli {
 	my $res = shift || return -1;
@@ -199,8 +198,8 @@ sub stop_res_cli {
         $opt = $CONFIG{$key} if not ref($CONFIG{$key});
         my $r = system("$CONFIG{INSTALLDIR}/res/$res stop $opt");
 	print "$CONFIG{INSTALLDIR}/res/$res stop $opt   ret:$r\n" if ($CONFIG{DEBUG} == 1);
-        if ($r != 0) { mylog "[ERR] stoping service $res" }
-	else { print "OK\n"; }
+        if ($r != 0) { mylog "stop_res_cli() [ERR] stoping service $res" }
+	else { mylog "stop_res_cli() [OK]\n"; }
 }
 
 sub get_nodes {
