@@ -152,7 +152,7 @@ sub sighandler {
 
         # raus, falls SIGINT
         if ($signal eq "INT") {
-                update_status({SUPERVISE=>0});
+                update_status({SUPERVISE=>0,STATUS=>undef});
                 system("rm -f $CONFIG{INSTALLDIR}/var/run/supervise >/dev/null 2>&1");
                 exit 0
         } # weiter in endlos-schleife sonst.
