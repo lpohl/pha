@@ -1,12 +1,13 @@
 #!/usr/bin/perl
 
-use lib '/opt/pha/etc';
-use lib '/opt/pha/lib';
-
-use pha;
+use Storable;
 use Data::Dumper;
 
-my $href = Storable::lock_retrieve($CONFIG{INSTALLDIR}.'/var/status.dat');
+my $file = '/opt/pha/var/status.dat';
 
-print $href->{STATUS}."\n";
-
+if (-f $file) {
+	my $href = Storable::lock_retrieve($file);
+	print $href->{STATUS}."\n";
+} else {
+	print "OFFLINE\n";
+}

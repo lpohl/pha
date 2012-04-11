@@ -98,8 +98,8 @@ sub sighandler {
         # raus, falls SIGINT
         if ($signal eq "INT") {
                 $SRVsocket->close();
-		my %st = (RECEIVER_IN=>undef);
-                update_status(\%st);
+		#my %st = (RECEIVER_IN=>undef);
+                #update_status(\%st);
 		system("rm -f $CONFIG{INSTALLDIR}/var/run/receiver >/dev/null 2>&1");
                 exit 0;
         } # weiter in endlos-schleife sonst.

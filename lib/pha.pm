@@ -7,6 +7,7 @@ use Storable;
 use Fcntl;
 use SDBM_File;
 use Sys::Hostname qw(hostname);
+use File::Basename qw(basename);
 use Net::Ping;
 
 # Export in Callernamespace (@EXPORT)  
@@ -15,6 +16,8 @@ use vars qw( @ISA @EXPORT @EXPORT_OK );
 @ISA = qw(Exporter AutoLoader);
 @EXPORT 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli update_status);
 @EXPORT_OK 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli update_status); 
+
+sub mylog;
 
 ##########################################
 # ggf. Konfigurations Dateipfad anpassen #
@@ -27,20 +30,40 @@ our %CONFIG		= read_configfile("/opt/pha/etc/config");
 ##############################################################
 
 # possible needed once, when no var/status.dat is around 
-our %ST 	= ( SENDER_RUN => 1, SENDER_TS => 0, RECEIVER_IN => undef ); 
+our %ST 	=();
+if (-f $CONFIG{INSTALLDIR}.'/var/status.dat') {
+	%ST = read_status();
+} 
 
-#if (-f $CONFIG{INSTALLDIR}.'/var/status.dat') {
-#	%ST = read_status();
-#}
+our $NAME = basename($0);
+if ($NAME eq "pha-sender.pl") {
+	$ST{SENDER_RUN} = 1; 
+	write_status(\%ST);
+} elsif ($NAME eq "pha-receiver.pl") {
+	$ST{RECEIVER_IN} = undef; 
+	write_status(\%ST);
+} elsif ($NAME eq "pha-supervise.pl") {
+	$ST{SUPERVISE} = 1; 
+	write_status(\%ST);
+} elsif ($NAME eq "pha-cli.pl") {
+	$ST{CLI} = 1;
+	write_status(\%ST);
+} else {
+	mylog "[ERR] pha.pm init \$NAME : $NAME ($0)";
+}
+
 
 our %NODES	= get_nodes();
+
 
 #
 # gemeinsame Funktionen (pha-*.pl)
 #
 
 sub write_status {
-	Storable::lock_store \%ST, $CONFIG{INSTALLDIR}.'/var/status.dat';
+	my $ref = shift || return;
+	return unless ref($ref);
+	Storable::lock_nstore $ref, $CONFIG{INSTALLDIR}.'/var/status.dat';
 }
 sub read_status {
 	my $ref = Storable::lock_retrieve $CONFIG{INSTALLDIR}.'/var/status.dat';
@@ -49,11 +72,11 @@ sub read_status {
 sub update_status {
 	my $nref = shift || return;
 
-	%ST = read_status();	
+	my %st = read_status();	
 	foreach my $k (keys %$nref) {
 		# die ganze logging un concat sachen machten warnungen 
 		# die einfache zuweisung ist kein problem!
-		$ST{$k} = $nref->{$k};
+		$st{$k} = $nref->{$k};
 		
 		# uninitialised warnung entfernen...
 		#$ST{$k} = '' unless exists $ST{$k};
@@ -63,7 +86,7 @@ sub update_status {
 		#	print STDERR "update_status key:$k val:".$nref->{$k}."\n";
 		#}
 	}
-	write_status();
+	write_status(\%st);
 }
 
 sub write_conf {
@@ -165,11 +188,11 @@ sub check_res {
 		
                 my $r = system("$CONFIG{INSTALLDIR}/res/$res check $opt");
                 if ($r != 0) {
-                        mylog "check_res(): Ressource '$CONFIG{INSTALLDIR}/res/$res' is DOWN";
+                        mylog "check_res(): Ressource '$CONFIG{INSTALLDIR}/res/$res' is DOWN" if ($CONFIG{DEBUG}>0);
                         $st{"RES_$res"} = "DOWN";
 			$down += 1;
                 } else {
-                        mylog "check_res(): Ressource '$CONFIG{INSTALLDIR}/res/$res' is UP";
+                        mylog "check_res(): Ressource '$CONFIG{INSTALLDIR}/res/$res' is UP" if ($CONFIG{DEBUG}>0);
                         $st{"RES_$res"} = "UP";
                 }
 		update_status(\%st);	
@@ -186,8 +209,12 @@ sub start_res_cli {
         $opt = $CONFIG{$key} if not ref($CONFIG{$key});
         my $r = system("$CONFIG{INSTALLDIR}/res/$res start $opt");
 	print "$CONFIG{INSTALLDIR}/res/$res start $opt    res:$r\n" if ($CONFIG{DEBUG} == 1); 
-        if ($r != 0) { mylog "start_res_cli() [ERR] starting service $res" }
-	else { mylog "start_res_cli() [OK]"; }
+        if ($r != 0) { 
+		mylog "start_res_cli() [ERR] starting service $res" 
+	} else { 
+		mylog "start_res_cli() [OK] started $res"; 
+		update_status({"RES_$res"=>"UP"}); 
+	}
 }
 sub stop_res_cli {
 	my $res = shift || return -1;
@@ -198,8 +225,12 @@ sub stop_res_cli {
         $opt = $CONFIG{$key} if not ref($CONFIG{$key});
         my $r = system("$CONFIG{INSTALLDIR}/res/$res stop $opt");
 	print "$CONFIG{INSTALLDIR}/res/$res stop $opt   ret:$r\n" if ($CONFIG{DEBUG} == 1);
-        if ($r != 0) { mylog "stop_res_cli() [ERR] stoping service $res" }
-	else { mylog "stop_res_cli() [OK]"; }
+        if ($r != 0) { 
+		mylog "stop_res_cli() [ERR] stoping service $res";
+	} else { 
+		mylog "stop_res_cli() [OK] stopped $res"; 
+		update_status({"RES_$res"=>"DOWN"});
+	}
 }
 
 sub get_nodes {
@@ -216,8 +247,6 @@ sub get_nodes {
 		#$nodes{$n} = $i;
 		$i++;
 	}
-	# neede some place to make sure status.dat is actually there, before the pha-* runs
-	write_status();
 	return %nodes;
 }
 

@@ -64,32 +64,49 @@ while (1) {
 	if ($down == 0) {
 		$st{STATUS} = 'ONLINE';
 		update_status(\%st);
-		mylog "supervise: down == 0 STATUS=ONLINE";
+		mylog "check_res(): down == 0 STATUS=ONLINE";
 	} else {
 		$st{STATUS} = 'OFFLINE';
 		update_status(\%st);
-		mylog "supervise: down == $down STATUS=OFFLINE";
+		mylog "check_res(): down == $down STATUS=OFFLINE";
 	}
 
+	# get stat db
 	%st = read_status();
-	if ($st{STATUS} eq "OFFLINE" and not defined($st{RECEIVER_IN})) {
-		mylog "[*] OFFLINE an no new Data on Receiver, possible Cluster DOWN!";
-		# adding some delay to change
-		mylog "[*] starting resources!";
+
+	if ($st{RECEIVER_IN} eq "PROGRESS") {
+		goto WAIT;
+		mylog "somthing is going on... remote";
+	}
+#	if ($st{STATUS} eq "PROGRESS") {
+#		goto WAIT;
+#		mylog "somthing is going on... local";
+#	}
+
+
+
+	#if ($st{STATUS} eq "OFFLINE" and not defined($st{RECEIVER_IN})) {
+	if (not defined($st{RECEIVER_IN})) {
+		goto WAIT if ($st{STATUS} eq "ONLINE");
+		mylog "[*] no new Data on Receiver";
 		$st{STATUS} = 'PROGRESS';
 		update_status(\%st);
 		foreach my $key (keys %CONFIG) {
         	        if ($key !~ /RES_(\w+)/) {next;}
-                	start_res_cli($1);
+			if ($st{$key} ne "UP") {
+	                	start_res_cli($1);
+			}
 	        }
 		$st{STATUS} = 'ONLINE';
 		update_status(\%st);
 	} 
-	if ($st{STATUS} eq "OFFLINE" and $st{RECEIVER_IN} eq "OFFLINE") {
-		mylog "OK remote is offline problem, starting resources!";
+	if ($st{RECEIVER_IN} eq "OFFLINE") {
+		goto WAIT if ($st{STATUS} eq "ONLINE");
+		mylog "remote is offline might a problem docnt:$docnt";
 		$st{STATUS} = 'PROGRESS';
 		update_status(\%st);
 		if ($docnt > 2) {
+			mylog "remote problem consistent, taking over, starting resources!";
 		        foreach my $key (keys %CONFIG) {
 				if ($key !~ /RES_(\w+)/) {next;}
         			start_res_cli($1);
@@ -103,26 +120,25 @@ while (1) {
 	}
 	
 	# split brain both active!? no good
-	if ($st{STATUS} eq "ONLINE" and $st{RECEIVER_IN} eq "ONLINE") {
-		mylog "[*] stopping resources!";
+	#if ($st{STATUS} eq "ONLINE" and $st{RECEIVER_IN} eq "ONLINE") {
+	if ($st{RECEIVER_IN} eq "ONLINE") {
+		goto WAIT if ($st{STATUS} eq "OFFLINE");
+		mylog "[*] Otherside is online, stopping resources! ";
                 foreach my $key (keys %CONFIG) {
                 	if ($key !~ /RES_(\w+)/) {next;}
 	                stop_res_cli($1);
                 }
+		$st{STATUS} = 'OFFLINE';
+		update_status(\%st);
 	}
 
-	if ($st{RECEIVER_IN} eq "PROGRESS") {
-		mylog "somthing is going on... remote";
-	}
-	if ($st{STATUS} eq "PROGRESS") {
-		mylog "somthing is going on... local";
-	}
 	
 	# hold the status.dat on current information
-	%st = read_status();
-	update_status(\%st);
+	#%st = read_status();
+	#update_status(\%st);
 
 	# Wait a bit
+WAIT:
 	myusleep($CONFIG{SUPERVISE_INT});
 }
 
@@ -141,8 +157,7 @@ sub sighandler {
 
         # raus, falls SIGINT
         if ($signal eq "INT") {
-		my %st = (SENDER_RUN=>0, STATUS=>'', SUPERVISE=>0);
-                update_status(\%st);
+                update_status({SUPERVISE=>0});
                 system("rm -f $CONFIG{INSTALLDIR}/var/run/supervise >/dev/null 2>&1");
                 exit 0
         } # weiter in endlos-schleife sonst.

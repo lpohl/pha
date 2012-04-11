@@ -179,6 +179,7 @@ sub sighandler {
 
         # raus, falls SIGINT
         if ($signal eq "INT") {
+		update_status({CLI=>0});
                 system("rm -f $CONFIG{INSTALLDIR}/var/run/cli >/dev/null 2>&1");
                 exit 0
         } # weiter in endlos-schleife sonst.

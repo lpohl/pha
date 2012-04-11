@@ -48,30 +48,28 @@ sub init_sender {
 	mylog "$0 process startet";
         # udp Server with own prozess
         while (1) {
+		myusleep(200);
 		udp_send();
-		myusleep(200)
         }
 }
 
 sub udp_send {
 	my ($buf,$v,$k,$tmp,$msg,$crc);
-
-	%ST = read_status();
-	if ($ST{SENDER_RUN} == 1) {
-        	$ST{SENDER_TS} = time()."";
-		write_status();
-		$msg = $NODES{local};
-	        $CLsocket->send($ST{STATUS}, 0) or mylog $!;
+	my %st = ();
+	if ($st{SENDER_RUN} == 1) {
+		%st = read_status();
+		#$msg = $NODES{local};
+		$msg = $st{STATUS};
+		# send datagramm
+	        $CLsocket->send($msg, 0) or mylog "udp_send() ".$!;
 		# $! == "No route to host" ^= peer firewalled
 		# $! == "Connection refused" ^= peer receiver Port down
 	}
-
 	# Old way
         # Send Data as Storable
         #$buf = Storable::freeze(\%ST);
         #$crc = unpack ("%16C*", $buf);
         #$msg = sprintf ("%.4d", $crc ).$buf;
-
 }
 
 
@@ -86,8 +84,7 @@ sub sighandler {
         # raus, falls SIGINT
         if ($signal eq "INT") {
                 $CLsocket->close();
-		my %st = (SENDER_RUN=>0, STATUS=>'OFFLINE');
-		update_status(\%st);
+		update_status({SENDER_RUN=>0});
 		system("rm -f $CONFIG{INSTALLDIR}/var/run/sender >/dev/null 2>&1");
                 exit 0
         } # weiter in endlos-schleife sonst.
