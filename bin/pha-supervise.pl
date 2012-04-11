@@ -70,24 +70,24 @@ while (1) {
 		mylog "[*] OFFLINE an no new Data on Receiver, possible Cluster DOWN!";
 		# adding some delay to change
 		mylog "[*] starting resources!";
-		%st{STATUS} = 'PROGRESS';
+		$st{STATUS} = 'PROGRESS';
 		update_status(\%st);
 		foreach my $key (keys %CONFIG) {
         	        if ($key !~ /RES_(\w+)/) {next;}
                 	start_res_cli($1);
 	        }
-		%st{STATUS} = 'ONLINE';
+		$st{STATUS} = 'ONLINE';
 		update_status(\%st);
 	} 
 	if ($st{STATUS} eq "OFFLINE" and $st{RECEIVER_IN} eq "OFFLINE") {
 		mylog "OK remote is offline problem, starting resources!";
-		%st{STATUS} = 'PROGRESS';
+		$st{STATUS} = 'PROGRESS';
 		update_status(\%st);
 	        foreach my $key (keys %CONFIG) {
 			if ($key !~ /RES_(\w+)/) {next;}
         		start_res_cli($1);
 	        }
-		%st{STATUS} = 'ONLINE';
+		$st{STATUS} = 'ONLINE';
 		update_status(\%st);
 	}
 	
