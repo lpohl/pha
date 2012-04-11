@@ -27,7 +27,7 @@ our %CONFIG		= read_configfile("/opt/pha/etc/config");
 ##############################################################
 
 # possible needed once, when no var/status.dat is around 
-our %ST 	= ( SENDER_RUN => 1, SENDER_TS => 0, RECEIVER_IN => undef, STATUS => 'PROGRESS' ); 
+our %ST 	= ( SENDER_RUN => 1, SENDER_TS => 0, RECEIVER_IN => undef, STATUS => 'OFFLINE' ); 
 
 #if (-f $CONFIG{INSTALLDIR}.'/var/status.dat') {
 #	%ST = read_status();

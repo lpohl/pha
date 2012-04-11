@@ -57,8 +57,6 @@ sub init_receiver {
 	mylog "$0 process startet";
 
         while (1) {
-		%st = read_status();
-		mylog "STATUS: $st{STATUS}";
                 udp_server();
                 myusleep(150)
         }
