@@ -73,7 +73,16 @@ while (1) {
 	if ($ST{STATUS} eq "OFFLINE" and defined($ST{RECEIVER_IN})) {
 		mylog "OK remote is active no problem"
 	}
-	#mylog "rec_in: ".$ST{RECEIVER_IN};
+	
+	# split brain both active!? no good
+	if ($ST{STATUS} eq "ONLINE" and defined($ST{RECEIVER_IN})) {
+		mylog "[*] stopping resources!";
+                foreach my $key (keys %CONFIG) {
+                	if ($key !~ /RES_(\w+)/) {next;}
+	                stop_res_cli($1);
+                }
+	}
+
 
 	# Wait a bit
 	myusleep($CONFIG{SUPERVISE_INT});
