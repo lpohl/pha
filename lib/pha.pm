@@ -270,6 +270,11 @@ sub stop_service {
 }
 sub start_service {
 	my $srv = shift || return;
+	my $pid =  get_pid($srv);
+	if ($pid) {
+		mylog "start_service: ERROR service \"$srv\" allready running!";
+		return;
+	}
 	mylog "start_service: $srv";
 	my $r = system($CONFIG{INSTALLDIR}."/bin/pha-$srv.pl");
 	mylog "start_service: system ret: $r";

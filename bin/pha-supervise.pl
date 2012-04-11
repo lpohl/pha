@@ -68,7 +68,7 @@ while (1) {
 	if ($ST{STATUS} eq "OFFLINE" and defined($ST{RECEIVER_IN})) {
 		mylog "Offline but Receiver is getting ok data! no problem"
 	}
-	
+	mylog "rec_in: ".$ST{RECEIVER_IN};
 	# Wait a bit
 	myusleep($CONFIG{SUPERVISE_INT});
 }
