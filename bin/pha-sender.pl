@@ -86,6 +86,8 @@ sub sighandler {
         # raus, falls SIGINT
         if ($signal eq "INT") {
                 $CLsocket->close();
+		my %st = (SENDER_RUN=>0, STATUS=>'');
+		update_status(\%st);
 		system("rm -f $CONFIG{INSTALLDIR}/var/run/sender >/dev/null 2>&1");
                 exit 0
         } # weiter in endlos-schleife sonst.

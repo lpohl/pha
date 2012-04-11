@@ -10,6 +10,7 @@ sub udp_server;
 sub sighandler;
 
 my ($SRVsocket, $SRVselect);
+my %st = ();
 
 # fange SIGINT, SIGTERM ab:
 $SIG{'INT'}  = 'sighandler';
@@ -50,9 +51,8 @@ sub init_receiver {
         print FH $$;
         close(FH);
 
-	%ST = read_status();
-        $ST{RECEIVER_IN} = undef;
-        write_status();
+        $st{RECEIVER_IN} = undef;
+        update_status(\%st);
 
 	mylog "$0 process startet";
 
@@ -75,11 +75,14 @@ sub udp_server {
                 print STDERR "[DBG] udp_server_loop() Read $bytes_read\n" if ($CONFIG{DEBUG} == 1);
                 #mylog "udp_server_loop() Read $bytes_read";
                 $bytes_read = 0;
-        }
+        } else {
+		%st = ();
+		$st{RECEIVER_IN} = undef;
+		update_status(\%st);
+	}
         if (length($buf) > 0) {
-		%ST = read_status();
-		$ST{RECEIVER_IN} = $buf;
-		write_status();
+		$st{RECEIVER_IN} = $buf;
+		update_status(\%st);
                 $buf = undef;
         }
 }
@@ -95,8 +98,10 @@ sub sighandler {
         # raus, falls SIGINT
         if ($signal eq "INT") {
                 $SRVsocket->close();
+		my %st = (STATUS=>'', RECEIVER_IN=>undef);
+                update_status(\%st);
 		system("rm -f $CONFIG{INSTALLDIR}/var/run/receiver >/dev/null 2>&1");
-                exit 0
+                exit 0;
         } # weiter in endlos-schleife sonst.
 }
 

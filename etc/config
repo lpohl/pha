@@ -6,7 +6,8 @@ VERSION=1
 INSTALLDIR=/opt/pha
 LOGPATH=/opt/pha/var/log
 DAEMON=1
-RTMODVAL=3
+# supervise loop intervall in ms
+SUPERVISE_INT=2000
 PINGTIMEOUT=2.1
 PORT=4711
 
@@ -23,7 +24,7 @@ GW=192.168.42.1
 # z.B. /opt/klaster/res/ipaddr start 10.0.0.20/24 eth0
 #      /opt/klaster/res/service start httpd
 
-RES_test=/ONLINE
+#RES_test=/ONLINE
 RES_ipaddr=192.168.42.20/24 eth0
 RES_service=httpd
 

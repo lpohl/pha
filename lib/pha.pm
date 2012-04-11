@@ -13,8 +13,8 @@ use Net::Ping;
 require Exporter;
 use vars qw( @ISA @EXPORT @EXPORT_OK );
 @ISA = qw(Exporter AutoLoader);
-@EXPORT 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli);
-@EXPORT_OK 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli); 
+@EXPORT 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli update_status);
+@EXPORT_OK 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli update_status); 
 
 ##########################################
 # ggf. Konfigurations Dateipfad anpassen #
@@ -51,10 +51,17 @@ sub update_status {
 
 	%ST = read_status();	
 	foreach my $k (keys %$nref) {
-		# uninitialised warnung ggf. entfernen...
-		if ($ST{$k} ne $nref->{$k}) {
-			$ST{$k} = $nref->{$k};
-		}
+		# die ganze logging un concat sachen machten warnungen 
+		# die einfache zuweisung ist kein problem!
+		$ST{$k} = $nref->{$k};
+		
+		# uninitialised warnung entfernen...
+		#$ST{$k} = '' unless exists $ST{$k};
+		# Update des status hash'es
+		#if ($ST{$k} ne $nref->{$k}) {
+		#	$ST{$k} = $nref->{$k};
+		#	print STDERR "update_status key:$k val:".$nref->{$k}."\n";
+		#}
 	}
 	write_status();
 }
@@ -180,7 +187,6 @@ sub check_res {
 	        $st{"STATUS"} = "ONLINE";
         	$st{"SENDER_RUN"} = "1";
 	}
-
 	# we must react faster
 	update_status(\%st);	
 }

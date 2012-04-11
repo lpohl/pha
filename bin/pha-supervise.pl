@@ -29,7 +29,7 @@ open(FH,">",$CONFIG{INSTALLDIR}."/var/run/supervise") or die $!;
 close(FH);
 
 if (! -f $CONFIG{INSTALLDIR}."/var/run/receiver") {
-	mylog "[*] reciver prozess not running";
+	mylog "[*] receiver prozess not running";
 }
 if (! -f $CONFIG{INSTALLDIR}."/var/run/sender") {
 	mylog "[*] sender prozess not running";
@@ -40,18 +40,37 @@ while (1) {
 	# 
 	check_defaultroute();
 
-	# Ping check
+	# Ping check Gateway
         if (icmp_ping($CONFIG{GW}) > 0) {
 		
-        } else { mylog "Default GW nicht erreichbar!"; }
+        } else { 
+		mylog "Default GW nicht erreichbar!"; 
+	}
 		
+	# Ping check PeerHost
         if (icmp_ping(get_peer_hostname()) > 0) {
 		 
-        } else { mylog "Peer Host nicht erreichbar!"; }
+        } else { 
+		mylog "Peer Host nicht erreichbar!"; 
+	}
 	
 	check_res();
 
-	myusleep(1000);
+	%ST = read_status();
+	if ($ST{STATUS} eq "OFFLINE" and not defined($ST{RECEIVER_IN})) {
+		mylog "[*] OFFLINE an no new Data on Receiver, possible Cluster DOWN!";
+		mylog "[*] starting resources!";
+		foreach my $key (keys %CONFIG) {
+                        if ($key !~ /RES_(\w+)/) {next;}
+                	start_res_cli($1);
+                }
+	} 
+	if ($ST{STATUS} eq "OFFLINE" and defined($ST{RECEIVER_IN})) {
+		mylog "Offline but Receiver is getting ok data! no problem"
+	}
+	
+	# Wait a bit
+	myusleep($CONFIG{SUPERVISE_INT});
 }
 
 exit 0;
@@ -69,6 +88,8 @@ sub sighandler {
 
         # raus, falls SIGINT
         if ($signal eq "INT") {
+		my %st = (SENDER_RUN=>0, STATUS=>'', SUPERVISE=>0);
+                update_status(\%st);
                 system("rm -f $CONFIG{INSTALLDIR}/var/run/supervise >/dev/null 2>&1");
                 exit 0
         } # weiter in endlos-schleife sonst.
