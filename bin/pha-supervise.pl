@@ -40,18 +40,20 @@ my $down = 0;
 while (1) {
 	my %st = ();
 	## default gw check?
-	#if(check_defaultroute()) {
-	#
-	#} else {
-	#	mylog "ERROR no Default GW set!"; 
-	#}
-	#
+	if(check_defaultroute()) {
+
+	} else {
+		update_status({SENDER_RUN=>0}); 
+		mylog "ERROR no Default GW set!"; 
+	}
+	
 	## Ping check Gateway
-        #if (icmp_ping($CONFIG{GW}) > 0) {
-	#	
-        #} else { 
-	#	mylog "Default GW unreachable!"; 
-	#}
+        if (icmp_ping($CONFIG{GW}) > 0) {
+	
+        } else {
+		update_status({SENDER_RUN=>0}); 
+		mylog "Default GW unreachable!"; 
+	}
 	## Ping check PeerHost
         #if (icmp_ping(get_peer_hostname()) > 0) {
 	#	 
