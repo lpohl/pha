@@ -10,7 +10,6 @@ sub udp_server;
 sub sighandler;
 
 my ($SRVsocket, $SRVselect);
-my %st = ();
 
 # fange SIGINT, SIGTERM ab:
 $SIG{'INT'}  = 'sighandler';
@@ -51,6 +50,7 @@ sub init_receiver {
         print FH $$;
         close(FH);
 
+	my %st=();
         $st{RECEIVER_IN} = undef;
         update_status(\%st);
 
@@ -66,6 +66,7 @@ sub init_receiver {
 sub udp_server {
         my ($sock,$buf,$bytes_read);
         $bytes_read = 0;
+	my %st = ();
 
         my @ready = $SRVselect->can_read(1);
         foreach $sock (@ready) {
@@ -76,7 +77,6 @@ sub udp_server {
                 #mylog "udp_server_loop() Read $bytes_read";
                 $bytes_read = 0;
         } else {
-		%st = ();
 		$st{RECEIVER_IN} = undef;
 		update_status(\%st);
 	}

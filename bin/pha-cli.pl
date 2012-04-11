@@ -26,10 +26,14 @@ while(1) {
 	%ST = read_status();
 	if ($ST{STATUS} eq "ONLINE") {
 		$state = "Active";
-	}
+	} 
 	elsif ($ST{STATUS} eq "OFFLINE") {
 		$state = "Standby";
-	} else {
+	}
+	elsif ($ST{STATUS} eq "OFFLINE") {
+		# dont change prompt
+	}
+	else {
 		$state = "NOTRUNNING";
 	}
 	

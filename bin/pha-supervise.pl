@@ -38,6 +38,7 @@ if (! -f $CONFIG{INSTALLDIR}."/var/run/sender") {
 my $docnt = 0;
 my $down = 0;
 while (1) {
+	my %st = ();
 	## default gw check?
 	#if(check_defaultroute()) {
 	#
@@ -63,6 +64,7 @@ while (1) {
 	if ($down == 0) {
 		$st{STATUS} = 'ONLINE';
 		update_status(\%st);
+		mylog "supervise: down == 0 STATUS=ONLINE";
 	}
 
 	%st = read_status();
@@ -100,8 +102,11 @@ while (1) {
                 }
 	}
 
-	if ($st{STATUS} eq "PROGRESS" or $st{RECEIVER_IN} eq "PROGRESS") {
-		mylog "somthing is going on...";
+	if ($st{RECEIVER_IN} eq "PROGRESS") {
+		mylog "somthing is going on... remote";
+	}
+	if ($st{STATUS} eq "PROGRESS") {
+		mylog "somthing is going on... local";
 	}
 	# Wait a bit
 	myusleep($CONFIG{SUPERVISE_INT});

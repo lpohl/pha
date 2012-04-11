@@ -40,7 +40,7 @@ our %NODES	= get_nodes();
 #
 
 sub write_status {
-	Storable::lock_nstore \%ST, $CONFIG{INSTALLDIR}.'/var/status.dat';
+	Storable::lock_store \%ST, $CONFIG{INSTALLDIR}.'/var/status.dat';
 }
 sub read_status {
 	my $ref = Storable::lock_retrieve $CONFIG{INSTALLDIR}.'/var/status.dat';
@@ -54,6 +54,7 @@ sub update_status {
 		# die ganze logging un concat sachen machten warnungen 
 		# die einfache zuweisung ist kein problem!
 		$ST{$k} = $nref->{$k};
+		print STDERR "update_status key:$k\n";
 		
 		# uninitialised warnung entfernen...
 		#$ST{$k} = '' unless exists $ST{$k};
