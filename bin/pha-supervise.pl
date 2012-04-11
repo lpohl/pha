@@ -120,7 +120,7 @@ while (1) {
 	
 	# hold the status.dat on current information
 	%st = read_status();
-	update_stats(\%st);
+	update_status(\%st);
 
 	# Wait a bit
 	myusleep($CONFIG{SUPERVISE_INT});
