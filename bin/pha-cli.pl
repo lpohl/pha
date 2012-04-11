@@ -70,7 +70,7 @@ EOS
 		print "stop sending Heartbeat\n";
 		update_status({SENDER_RUN=>0});
 	} elsif ($in =~ /^ena|^on/) {
-		print "starting to send Heartbeat\”";
+		print "starting to send Heartbeat\n";
 		update_status({SENDER_RUN=>1});
 	} elsif ($in =~ /^start/) {
 		start_service('sender');
