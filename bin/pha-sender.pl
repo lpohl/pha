@@ -56,6 +56,7 @@ sub init_sender {
 sub udp_send {
 	my ($buf,$v,$k,$tmp,$msg,$crc);
 	my %st = ();
+	%st = read_status();
 	if ($st{SENDER_RUN} == 1) {
 		%st = read_status();
 		#$msg = $NODES{local};
