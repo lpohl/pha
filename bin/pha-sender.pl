@@ -61,7 +61,7 @@ sub udp_send {
         	$ST{SENDER_TS} = time()."";
 		write_status();
 		$msg = $NODES{local};
-	        $CLsocket->send($msg, 0) or mylog $!;
+	        $CLsocket->send($ST{STATUS}, 0) or mylog $!;
 		# $! == "No route to host" ^= peer firewalled
 		# $! == "Connection refused" ^= peer receiver Port down
 	}
