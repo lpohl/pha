@@ -60,22 +60,26 @@ while (1) {
 	if ($ST{STATUS} eq "OFFLINE" and not defined($ST{RECEIVER_IN})) {
 		mylog "[*] OFFLINE an no new Data on Receiver, possible Cluster DOWN!";
 		# adding some delay to change
-		#$docnt++;
-		#if ($docnt>1) {
+		$docnt++;
+		if ($docnt>1) {
 			mylog "[*] starting resources!";
 			foreach my $key (keys %CONFIG) {
         	                if ($key !~ /RES_(\w+)/) {next;}
                 		start_res_cli($1);
 	                }
-		#	$docnt = 0;
-		#}
+			$docnt = 0;
+		}
 	} 
 	if ($ST{STATUS} eq "OFFLINE" and $ST{RECEIVER_IN} eq "OFFLINE") {
-		mylog "OK remote is offline problem, starting resources!";
-                foreach my $key (keys %CONFIG) {
-	                if ($key !~ /RES_(\w+)/) {next;}
-        	        start_res_cli($1);
-                }
+		$docnt++;
+		if ($docnt>1) {
+			mylog "OK remote is offline problem, starting resources!";
+	                foreach my $key (keys %CONFIG) {
+		                if ($key !~ /RES_(\w+)/) {next;}
+        		        start_res_cli($1);
+	                }
+			$docnt = 0;
+		}
 	}
 	
 	# split brain both active!? no good
