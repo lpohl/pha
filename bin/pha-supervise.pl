@@ -117,6 +117,11 @@ while (1) {
 	if ($st{STATUS} eq "PROGRESS") {
 		mylog "somthing is going on... local";
 	}
+	
+	# hold the status.dat on current information
+	%st = read_status();
+	update_stats(\%st);
+
 	# Wait a bit
 	myusleep($CONFIG{SUPERVISE_INT});
 }
