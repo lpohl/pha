@@ -7,23 +7,34 @@ In this Development example it is an Virtual IP and the http Service scripted tr
 
 Floders & Files: 
 ./README
+
+# pha configuration file
+./etc/config
+
+# programms
 ./bin/pha-cli.pl
-./bin/pha-decider.pl
+./bin/pha-supervise.pl
 ./bin/pha-receiver.pl
 ./bin/pha-sender.pl
-./etc/config
+
+# Libary with common functions, used by pha-*.pl
 ./lib/pha.pm
+
+# pids and logs
+./var/run/
+./var/log.*
+
+# ressource scripts, look into test for an example what they must provide! (start, stop, check)
 ./res/
 ./res/service
 ./res/ipaddr
-./var/run/
-./var/log.receiver
-./var/log.sender
-./var/log.decider
+./res/test
 
 
 
-# set a Shell Prompt Status indicator:
+# 
+# set a nice Shell Prompt Status indicator:
+#
 
 getPromptStatus()
 {

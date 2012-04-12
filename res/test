@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# example ressource mgmt script
+#
+# exit|return 1 == OK
+# exit|return 0 == ERROR
+#
 
 if [ -z "$1" ]; then
 	echo "[*] use: $0 <start|stop> <service>"
@@ -24,7 +30,7 @@ case $1 in
 		fi
 	;;
 	*)
-	echo "[*] WHAT? what do you want from me? (start|stop)"
+	echo "[*] WHAT? what do you want from me? (start|stop|check)"
 	exit 1
 	;;
 esac
