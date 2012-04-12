@@ -44,12 +44,15 @@ our $NAME = basename($0);
 if ($NAME eq "pha-sender.pl") {
 	$ST{SENDER_RUN} = 1; 
 	write_status(\%ST);
+	$0 = $CONFIG{INSTALLDIR}."/bin/pha-sender.pl";
 } elsif ($NAME eq "pha-receiver.pl") {
 	$ST{RECEIVER_IN} = undef; 
 	write_status(\%ST);
+	$0 = $CONFIG{INSTALLDIR}."/bin/pha-receiver.pl";
 } elsif ($NAME eq "pha-supervise.pl") {
 	$ST{SUPERVISE} = 1; 
 	write_status(\%ST);
+	$0 = $CONFIG{INSTALLDIR}."/bin/pha-supervise.pl";
 } elsif ($NAME eq "pha-cli.pl") {
 	$ST{CLI} = 1;
 	write_status(\%ST);
