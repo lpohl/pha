@@ -57,7 +57,7 @@ our %NODES	= get_nodes();
 
 
 #
-# gemeinsame Funktionen (pha-*.pl)
+# common functions (pha-*.pl)
 #
 
 sub write_status {
@@ -74,17 +74,8 @@ sub update_status {
 
 	my %st = read_status();	
 	foreach my $k (keys %$nref) {
-		# die ganze logging un concat sachen machten warnungen 
-		# die einfache zuweisung ist kein problem!
+		# update %st with supported dataref
 		$st{$k} = $nref->{$k};
-		
-		# uninitialised warnung entfernen...
-		#$ST{$k} = '' unless exists $ST{$k};
-		# Update des status hash'es
-		#if ($ST{$k} ne $nref->{$k}) {
-		#	$ST{$k} = $nref->{$k};
-		#	print STDERR "update_status key:$k val:".$nref->{$k}."\n";
-		#}
 	}
 	write_status(\%st);
 }
@@ -135,21 +126,8 @@ sub read_configfile {
 	}
 	close(FH);
 
-#	foreach (keys (%CONFIG)) {
-#	        if (ref $CONFIG{$_} ) {
-#                	print $_."=";
-#        	        foreach $v (@{$CONFIG{$_}}) {
-#	                        print "$v ";
-#                	}
-#        	        print "\n";
-#	        } else {
-#                	print $_."=".$CONFIG{$_}."\n";
-#        	}
-#	}
-
 	return %conf; 
 }
-
 sub icmp_ping {
         my $host = shift;
         return -1 unless defined $host;
@@ -165,7 +143,6 @@ sub icmp_ping {
                 return -1;
         }
 }
-
 sub check_defaultroute {
         my $gw = shift || $CONFIG{GW};
         my $ret = `ip r s|grep $gw |grep default 2>/dev/null`;
@@ -173,7 +150,7 @@ sub check_defaultroute {
         #mylog "check_defaultroute() $ret";
         if ($ret) { return 1; } else { return undef;}
 }
-
+# check all resopurces, and return number of downs
 sub check_res {
         # Check Ressources with the corresponding script action "check"
 	my %st = ();
@@ -200,6 +177,7 @@ sub check_res {
 	return $down;
 }
 
+# start resource script
 sub start_res_cli {
 	my $res = shift || return -1;
 	
@@ -216,6 +194,7 @@ sub start_res_cli {
 		update_status({"RES_$res"=>"UP"}); 
 	}
 }
+# stop resource script
 sub stop_res_cli {
 	my $res = shift || return -1;
 	
@@ -274,16 +253,14 @@ sub get_pid {
 	}
 	return $pid;
 }
+# stop pha daemon
 sub stop_service {
 	my $srv = shift || return;
 	mylog "stop_service: $srv  pid: ".get_pid($srv);
-	#kill 9, get_pid($srv); 9 == KILL onyl in INT sig cleanup is done
-	#kill 2, get_pid($srv);
 	my $pid =  get_pid($srv);
-	if ($pid != 0) {
-		kill 'INT', $pid;
-	}
+	kill('INT', $pid) if ($pid != 0);
 }
+# start pha daemon
 sub start_service {
 	my $srv = shift || return;
 	my $pid =  get_pid($srv);
@@ -295,124 +272,11 @@ sub start_service {
 	my $r = system($CONFIG{INSTALLDIR}."/bin/pha-$srv.pl");
 	mylog "start_service: system ret: $r";
 }
+
+# sleep param1 millisec
 sub myusleep($) {
 	my $msec = shift;
 	$msec = $msec / 1000;
 	select(undef, undef, undef, $msec);
 }
-
-#
-# Old and deprecated
-#
-sub var_getcopy {
-	my %H;
-	my ($key,$val)=("","");
-	
-	# TIE datafile
-	tie(%H, 'SDBM_File', "$CONFIG{INSTALLDIR}/var/hash", O_RDWR|O_CREAT, 0666) or die "Couldn't tie SDBM file '$CONFIG{INSTALLDIR}/var/hash': $!; aborting";
-	# Debug OUT PUT
-	if ($CONFIG{DEBUG}) {
-		while (($key,$val) = each %H) {
-			print STDERR $key, ' = ', $val, "\n";
-		}
-	}
-	# Copy data
-	my %h = %H;
-	# release TIE
-	untie(%H);
-	
-	return %h;
-}
-
-sub var_get {
-	my $key = shift;
-        my $val = undef;
-	my %H = ();
-
-	if (!$key) {
-		mylog "var_get() empty key";
-		return "";
-	}
-	# TIE datafile
-        tie(%H, 'SDBM_File', "$CONFIG{INSTALLDIR}/var/hash", O_RDWR|O_CREAT, 0666) or die "Couldn't tie NDBM file '$CONFIG{INSTALLDIR}/var/hash': $!; aborting";
-	$val = $H{$key};
-
-	# release TIE
-        untie(%H);
-
-	return $val || undef;
-}
-
-sub var_add {
-	my $nKEY = shift;
-	my $nVAL = shift||"(null)";
-
-	return -1 unless defined ($nKEY || $nVAL);
-
-	my %H = ();
-	my $k = undef;
-	my ($key,$val)=("","");
-	
-	tie(%H, 'SDBM_File', "$CONFIG{INSTALLDIR}/var/hash", O_RDWR|O_CREAT, 0666) or die "Couldn't tie NDBM file '$CONFIG{INSTALLDIR}/var/hash': $!; aborting";
-
-	if ($nKEY) {
-		$k = $nKEY;
-	} else {
-		$k = keys %H;
-	}
-
-	$H{$k} = $nVAL;
-	#mylog "var_add() (nKEY=VAL: '$k'=>'$nVAL')";
-		
-	# Debug OUT PUT
-	if ($CONFIG{DEBUG}) {
-		while (($key,$val) = each %H) {
-			mylog $key.' = '.$val;
-		}
-	}
-	untie(%H);
-	
-	return 0;		
-}
-
-sub var_del {
-	my $dKEY = shift;
-	my $dVAL = shift || "(null)";
-	
-	return -1 unless defined ($dKEY || $dVAL);
-
-	my %H=();
-	my ($key,$val)=("","");
-	my $k = undef;
-		
-	tie(%H, 'SDBM_File', "$CONFIG{INSTALLDIR}/var/hash", O_RDWR|O_CREAT, 0666) or die "Couldn't tie NDBM file '$CONFIG{INSTALLDIR}/var/hash': $!; aborting";
-	
-	if ($dKEY) {
-		#mylog "var_del() key: $dKEY";
-		delete ($H{$dKEY});
-	} else {
-		foreach $k (sort keys %H) {
-			if ($H{$k} eq $dVAL) {
-				mylog " var_del() H{$k}: $H{$k} found the one to delete (dVAL: $dVAL)";
-				delete ($H{$k});
-			}
-		}
-	}
-	untie(%H);
-	
-	return 0;
-}
-
-sub var_delall {
-	my %H=();
-        my ($key,$val)=("","");
-        my $k = undef;
-
-        tie(%H, 'SDBM_File', "$CONFIG{INSTALLDIR}/var/hash", O_RDWR|O_CREAT, 0666) or die "Couldn't tie NDBM file '$CONFIG{INSTALLDIR}/var/hash': $!; aborting";
-	%H = ();
-        untie(%H);
-        return 0;
-}
-
-1;
 
