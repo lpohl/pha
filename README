@@ -6,9 +6,9 @@
 Software to keep Scriptable Service(s) alive on one of two Nodes.
 
 
-In this Development example it is an Virtual IP and the http Service scripted trough the Shell-Scripts in ./res/.
+In this development example it is an virtual IP and the http service scripted trough the shell scripts in ./res/.
 
-Floders & Files: 
+folders & files: 
 ./README
 
 # pha configuration file
@@ -36,9 +36,9 @@ Floders & Files:
 
 
 # 
-# set a nice Shell Prompt Status indicator:
+# set a nice shell prompt status indicator:
 #
-# this one would work with Bash, place it in your profile,
+# this one would work with bash, place it in your profile,
 # may be .bashrc, .profile or .bash_profile
 #
 # or even global in /etc/bashrc or /etc/profile
