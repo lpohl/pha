@@ -90,12 +90,12 @@ sub sighandler {
 
         mylog "sighandler() Signal: SIG$signal caught!";
 
-        # raus, falls SIGINT
+        # Cleanup and Terminate if SIGNAL was SIGINT (^c)
         if ($signal eq "INT") {
                 $CLsocket->close();
 		update_status({SENDER_RUN=>0});
 		system("rm -f $CONFIG{INSTALLDIR}/var/run/sender >/dev/null 2>&1");
                 exit 0
-        } # weiter in endlos-schleife sonst.
+        } 
 }
 

@@ -5,15 +5,19 @@ use pha;
 use Data::Dumper;
 
 
-# fange SIGINT, SIGTERM ab:
+# catch SIGINT and SIGTERM:
 $SIG{'INT'}  = 'sighandler';
 $SIG{'TERM'} = 'sighandler';
 
 
 # MAIN()
-
+if (-f $CONFIG{INSTALLDIR}."/var/run/cli") {
+	print STDERR "[*] ERR pha-cli allready running!\n";	
+	exit 1;
+}
+# Write PID
 open(FH,">",$CONFIG{INSTALLDIR}."/var/run/cli") or die $!;
-print FH $$;
+	print FH $$;
 close(FH);
 mylog "$0 started";
 
@@ -30,20 +34,12 @@ while(1) {
 	elsif ($ST{STATUS} eq "OFFLINE") {
 		$state = "Standby";
 	}
-	elsif ($ST{STATUS} eq "OFFLINE") {
+	elsif ($ST{STATUS} eq "PROGRESS") {
 		# dont change prompt
 	}
 	else {
 		$state = "NOTRUNNING";
 	}
-	
-	# Hard workaround if status update on status.dat in sighandler is not working
-	#if (	! -f $CONFIG{INSTALLDIR}."/var/run/receiver" or
-	#	! -f $CONFIG{INSTALLDIR}."/var/run/sender" or
-	#	! -f $CONFIG{INSTALLDIR}."/var/run/supervise" )
-	#{
-	#	$state = "NOTRUNNING";
-	#}
 	
 	print "[".get_local_hostname.":$state] > ";
 	
@@ -173,11 +169,11 @@ sub sighandler {
 
         mylog "sighandler() Signal: SIG$signal caught!";
 
-        # raus, falls SIGINT
+	# Cleanup and Terminate if SIGNAL was SIGINT (^c)
         if ($signal eq "INT") {
 		update_status({CLI=>0});
                 system("rm -f $CONFIG{INSTALLDIR}/var/run/cli >/dev/null 2>&1");
                 exit 0
-        } # weiter in endlos-schleife sonst.
+        } 
 }
 

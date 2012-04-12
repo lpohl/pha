@@ -150,11 +150,11 @@ sub sighandler {
 
         mylog "sighandler() Signal: SIG$signal caught!";
 
-        # raus, falls SIGINT
+	# Cleanup and Terminate if SIGNAL was SIGINT (^c)
         if ($signal eq "INT") {
                 update_status({SUPERVISE=>0,STATUS=>undef});
                 system("rm -f $CONFIG{INSTALLDIR}/var/run/supervise >/dev/null 2>&1");
                 exit 0
-        } # weiter in endlos-schleife sonst.
+        }
 }
 

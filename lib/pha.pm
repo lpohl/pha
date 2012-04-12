@@ -14,8 +14,8 @@ use Net::Ping;
 require Exporter;
 use vars qw( @ISA @EXPORT @EXPORT_OK );
 @ISA = qw(Exporter AutoLoader);
-@EXPORT 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli update_status);
-@EXPORT_OK 	= qw( checkconfig mylog var_getcopy var_get var_add var_del var_delall write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli update_status); 
+@EXPORT 	= qw( checkconfig mylog write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli update_status);
+@EXPORT_OK 	= qw( checkconfig mylog write_status read_status write_conf read_conf myusleep get_peer_hostname get_local_hostname %RES %CONFIG %ST %NODES get_pid stop_service start_service icmp_ping check_link_local check_defaultroute check_res stop_res_cli start_res_cli update_status); 
 
 sub mylog;
 
@@ -28,6 +28,11 @@ our %CONFIG		= read_configfile("/opt/pha/etc/config");
 ##############################################################
 # ENDE ALLER ANPASSUNGEN, HIER DRUNTER NICHT MEHR EDITIEREN! #
 ##############################################################
+
+if (! -d  $CONFIG{INSTALLDIR}.'/var/run') {
+	mkdir $CONFIG{INSTALLDIR}.'/var';
+	mkdir $CONFIG{INSTALLDIR}.'/var/run';
+}
 
 # possible needed once, when no var/status.dat is around 
 our %ST 	=();

@@ -95,13 +95,13 @@ sub sighandler {
 
         mylog "sighandler() Signal: SIG$signal caught!";
 
-        # raus, falls SIGINT
+	# Cleanup and Terminate if SIGNAL was SIGINT (^c)
         if ($signal eq "INT") {
                 $SRVsocket->close();
 		#my %st = (RECEIVER_IN=>undef);
                 #update_status(\%st);
 		system("rm -f $CONFIG{INSTALLDIR}/var/run/receiver >/dev/null 2>&1");
                 exit 0;
-        } # weiter in endlos-schleife sonst.
+        }
 }
 
