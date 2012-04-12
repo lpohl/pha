@@ -38,8 +38,10 @@ Floders & Files:
 # 
 # set a nice Shell Prompt Status indicator:
 #
-# this one would work with Bash, place it in your profile, may be .bashrc, .profile,.bash_profile
-# or global in /etc/bashrc or possible /etc/profile
+# this one would work with Bash, place it in your profile,
+# may be .bashrc, .profile or .bash_profile
+#
+# or even global in /etc/bashrc or /etc/profile
 #
 
 getPromptStatus()
