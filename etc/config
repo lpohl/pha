@@ -2,14 +2,13 @@
 # Globales #
 #
 DEBUG=0
-VERSION=1
 INSTALLDIR=/opt/pha
 LOGPATH=/opt/pha/var/log
 DAEMON=1
-# supervise loop intervall in ms
-SUPERVISE_INT=2000
 PINGTIMEOUT=2.1
 PORT=4711
+# supervise loop intervall in ms
+SUPERVISE_INT=2000
 
 # Cluster Nodes and ID's (ID 1 ^= 1. position in the list)
 NODES=lb1 lb2
@@ -20,7 +19,7 @@ GW=192.168.42.1
 #
 # Ressouren #
 #
-# Definition der zu behandelden Ressourcen Scripts und deren Parameter
+# definition of the parameters and ressourcescripts
 #
 # example: /opt/klaster/res/ipaddr start 10.0.0.20/24 eth0
 #          /opt/klaster/res/service start httpd
@@ -28,20 +27,4 @@ GW=192.168.42.1
 #RES_test=/ONLINE
 RES_service=httpd
 RES_ipaddr=192.168.42.20/24 eth0
-RES_ipaddr2="192.168.42.19/24 eth0"
-RES_ipaddr3="192.168.42.18/24 eth0"
-RES_ipaddr4="192.168.42.17/24 eth0"
-RES_ipaddr5="192.168.42.16/24 eth0"
-RES_ipaddr6="192.168.42.15/24 eth0"
-RES_ipaddr7="192.168.42.14/24 eth0"
-RES_ipaddr8="192.168.42.13/24 eth0"
-RES_ipaddr9="192.168.42.12/24 eth0"
-
-# Possible obsolete
-MOVE_TO_HIGH_ID=0
-HB_USE_STORABLE=1
-ALLOW_TIMEDIFF=5
-INTERVALL=5
-STARTDELAY=3
-SWITCHDELAY=2
 
