@@ -1,7 +1,10 @@
 
-	pha - Perl High Availabillity
+#####################################################
+#	pha - Perl High Availabillity Toolkit       #
+#####################################################
 
-Software to keep a Scriptable Service alive on one of two Nodes.
+Software to keep Scriptable Service(s) alive on one of two Nodes.
+
 
 In this Development example it is an Virtual IP and the http Service scripted trough the Shell-Scripts in ./res/.
 
@@ -34,6 +37,9 @@ Floders & Files:
 
 # 
 # set a nice Shell Prompt Status indicator:
+#
+# this one would work with Bash, place it in your profile, may be .bashrc, .profile,.bash_profile
+# or global in /etc/bashrc or possible /etc/profile
 #
 
 getPromptStatus()
