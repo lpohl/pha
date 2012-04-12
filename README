@@ -3,7 +3,7 @@
 #	pha - Perl High Availabillity Toolkit       #
 #####################################################
 
-Software to keep Scriptable Service(s) alive on one of two Nodes.
+Software to keep scriptable service(s) alive on one of two nodes.
 
 
 In this development example it is an virtual IP and the http service scripted trough the shell scripts in ./res/.
