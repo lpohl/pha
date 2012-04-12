@@ -11,24 +11,31 @@ SUPERVISE_INT=2000
 PINGTIMEOUT=2.1
 PORT=4711
 
-# Cluster Nodes und deren ID's (ID 1 = 1. Position in der Liste usw...)
+# Cluster Nodes and ID's (ID 1 ^= 1. position in the list)
 NODES=lb1 lb2
 
-# Default GW (network connectivity test by icmp)
+# ICMP Test IP, possible the Default Gateway
 GW=192.168.42.1
 
 #
 # Ressouren #
 #
 # Definition der zu behandelden Ressourcen Scripts und deren Parameter
-# z.B. /opt/klaster/res/ipaddr start 10.0.0.20/24 eth0
-#      /opt/klaster/res/service start httpd
+#
+# example: /opt/klaster/res/ipaddr start 10.0.0.20/24 eth0
+#          /opt/klaster/res/service start httpd
 
 #RES_test=/ONLINE
-RES_ipaddr=192.168.42.20/24 eth0
 RES_service=httpd
-
-#RES_ipaddr2="10.201.26.160 eth0"
+RES_ipaddr=192.168.42.20/24 eth0
+RES_ipaddr2="192.168.42.19/24 eth0"
+RES_ipaddr3="192.168.42.18/24 eth0"
+RES_ipaddr4="192.168.42.17/24 eth0"
+RES_ipaddr5="192.168.42.16/24 eth0"
+RES_ipaddr6="192.168.42.15/24 eth0"
+RES_ipaddr7="192.168.42.14/24 eth0"
+RES_ipaddr8="192.168.42.13/24 eth0"
+RES_ipaddr9="192.168.42.12/24 eth0"
 
 # Possible obsolete
 MOVE_TO_HIGH_ID=0
