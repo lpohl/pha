@@ -4,8 +4,6 @@ use strict;
 use warnings;
 
 use Storable;
-use Fcntl;
-use SDBM_File;
 use Sys::Hostname qw(hostname);
 use File::Basename qw(basename);
 use Net::Ping;

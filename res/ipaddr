@@ -6,7 +6,6 @@ if [ -z "$3" ]; then
 fi
 
 IP=$(echo $2 |cut -d '/' -f 1)
-#echo $IP
 
 case "$1" in 
 	start)
