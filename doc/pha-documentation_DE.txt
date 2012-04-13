@@ -1,0 +1,283 @@
+################################################################################
+#                                                                              #
+#     DOKUMENTATION - pha - (Perl High Availability Toolkit)                   #
+#                                                                              #
+################################################################################
+
+-- Inhalt --
+------------
+1. Übersicht
+2. Implementation
+3. Vorraussetzungen
+4. Konfiguration der Software
+5. Betrieb
+6. Troubleshooting
+
+
+
+1.0 Übersicht 
+-------------
+Zweck des Perl High Availability Toolkits (weiters "pha") ist es einen Services 
+möglichst ohne Unterbrechung der Verfügbarkeit zu überwachen und
+am laufen zu halten.
+
+Services können dabei alles sein was durch ein Script (oder programm) gestartet,
+gestoppt und auf seinen status hin überprüft werden kann.
+Wie z.B. ein Webserver, zu welchem es ein init Script gibt welches die Optionen
+start/stop/check anbietet.
+
+Die Funktionalität ist auf einen zwei Node Cluster beschränkt.
+
+
+
+2.0 Implementierung
+-------------------
+Das gesammte pha ist in Perl programmiert, da sich mit dieser Scriptsprache 
+schnell und effizient Anwendungen dieser Art schreiben lassen.
+
+Der standard Prefix für die Installation auf einem UNIX System ist "/opt/pha".
+
+Zur einfachen Steuerung, Management und Überwachung des Clusters gibt es 
+das CLI (Command Line Interface) "bin/pha-cli.pl"
+
+Das pha besteht aus 3 Daemon Programmen, welche folgenden Funktionen übernehmen:
+sender      - sendet den Lokalen Status an die Gegenseite (Heartbeat alle 200ms)
+receiver    - empfängt den Heartbeat der Gegenseite und speichert diesen
+supervise   - checkt die localen Ressourcen, wertet die Informationen des
+              Heartbeats aus und sorgt für das starten und stoppen der 
+              Ressourcen je nach Informationslage
+
+Alle Daemons arbeiten auf der gleichen Clusterstatus Datenbasis, welche in 
+serialisierter Form auf der Festplatte vorliegt und alle Informatioen der 
+drei zusammen arbeitenden Programme enthält. (var/status.dat)
+
+Der sender überträgt mit dem Heartbeat drei mögliche Stati an die Gegenseite
+ONLINE, OFFLINE oder PROGRESS.
+PROGRESS sorgt lediglich dafür das auf der anderen Seite mit einer Entscheidung
+gewartet wird, da gerade ein start oder stop von Ressourcen stattfindet.
+
+Der receiver, hat logischerweise, die Aufgabe die Heartbeats der Gegenseite 
+zu empfangen und die Information in der status.dat zu speichern.
+
+Der supervise Daemon checkt in etwas grösseren Abständen (ab 2 Sekunden) die
+Ressourcen auf ihren status (UP/DOWN), desweiteren prüft er per ICMP die 
+Erreichbarkeit einer IP (z.B. die des Default Gateways, in config GW=xy).
+Sollte der ICMP Test fehlschlagen, so wird das senden des Heartbeats gestoppt
+und damit eine schnelle Übernahme der Ressourcen durch die Gegenseite initiert.
+
+Im nächsten Schritt wird der Heartbeat der Gegenseite ausgewertet
+
+Peerhost    Aktion
+undef       res up, falls nötig
+OFFLINE     res up, falls nötig
+ONLINE      res down, falls nötig
+PROGRESS	goto WAIT, keine aktion
+
+Danach fängt der Supervise Loop wieder mit dem check der Ressourcen an.
+
+
+
+3.0 Vorraussetzungen
+--------------------
+Vorraussetzung damit das pha eingesetzt werden kann ist ein installierter
+Perl Interpreter (ab 5.6), sowie folgenden zusätzliche Perl Module, welche 
+jedoch in nahezu jeder aktuellen UNIX/LINUX Distribution mitgeliefert
+werden sollten:
+
+Storable
+Sys::Hostname
+File::Basename
+Net::Ping
+
+
+
+4. Konfiguration der Software
+-----------------------------
+Die Konfiguration des Clusters sowie der zu verwaltenden Ressourcen findet 
+in der Datei ./etc/config statt.
+
+Wichtig ist das die bei NODES eingetragenen Rechner per Namen auflösbar sind 
+die /etc/hosts oder der DNS sollte entsprechend gepflegt sein.
+
+Allgemein gilt je mehr Ressourcesn eingerichtet sind desto höher sollte 
+der Wert von SUPERVISE_INT sein.
+In einem Test mit 10 Ressouce Scripts wurde ein Wert von 4000 (ms, 4 Sek)
+als angemessen ermittelt.
+
+
+Beispiel Konfiguration:
+
+#
+# Globales #
+#
+DEBUG=0
+INSTALLDIR=/opt/pha
+LOGPATH=/opt/pha/var/log
+DAEMON=1
+PINGTIMEOUT=2.1
+PORT=4711
+# supervise loop intervall in ms
+SUPERVISE_INT=2000
+
+# Cluster Nodes and ID's (ID 1 ^= 1. position in the list)
+NODES=lb1 lb2
+
+# ICMP Test IP, possible the Default Gateway
+GW=192.168.42.1
+
+#
+# Ressouren #
+#
+# definition of the parameters and ressourcescripts
+#
+# manual execution of the Ressource Scripts for testing
+# example: /opt/pha/res/ipaddr start 10.0.0.20/24 eth0
+#          /opt/pha/res/service start httpd
+
+#RES_test=/ONLINE
+RES_service=httpd
+RES_ipaddr=192.168.42.20/24 eth0
+
+
+
+5. Betrieb
+----------
+Der Betrieb und Kontrolle der pha software erfolgt über das mitgelieferte 
+CLI Tool (pha-cli.pl). 
+Jedes der Programme des "pha" schreibt eine eigene Logdatei in welche wichtige 
+Meldungen festgehalten werden.
+
+START auf lb1:
+
+[root@lb1:NOTRUNNING] ~ # cd /opt/pha/
+[root@lb1:NOTRUNNING] pha # ./bin/pha-cli.pl
+[lb1:NOTRUNNING] > stat
+$VAR1 = {
+          'CLI' => 1,
+        };
+sender:         0
+receiver:       0
+supervise:      0
+[lb1:NOTRUNNING] > start
+[lb1:NOTRUNNING] > stat
+$VAR1 = {
+          'CLI' => 1,
+          'RES_ipaddr' => 'DOWN',
+          'STATUS' => 'ONLINE',
+          'RECEIVER_IN' => undef,
+          'SUPERVISE' => 1,
+          'RES_service' => 'DOWN',
+          'SENDER_RUN' => 1
+        };
+sender:         16468
+receiver:       16470
+supervise:      16472
+[lb1:Active] > stat
+$VAR1 = {
+          'CLI' => 1,
+          'RES_ipaddr' => 'UP',
+          'STATUS' => 'ONLINE',
+          'RECEIVER_IN' => undef,
+          'SUPERVISE' => 1,
+          'RES_service' => 'UP',
+          'SENDER_RUN' => 1
+        };
+sender:         16468
+receiver:       16470
+supervise:      16472
+[lb1:Active] >
+
+
+
+START auf lb2:
+
+[root@lb2:NOTRUNNING] ~ # /opt/pha/bin/pha-cli.pl
+[lb2:NOTRUNNING] > stat
+$VAR1 = {
+          'CLI' => 1
+        };
+sender:         0
+receiver:       0
+supervise:      0
+[lb2:NOTRUNNING] > start
+[lb2:NOTRUNNING] > stat
+$VAR1 = {
+          'CLI' => 1,
+          'RES_ipaddr' => 'DOWN',
+          'STATUS' => 'OFFLINE',
+          'RECEIVER_IN' => 'ONLINE',
+          'SUPERVISE' => 1,
+          'RES_service' => 'DOWN',
+          'SENDER_RUN' => 1
+        };
+sender:         30432
+receiver:       30434
+supervise:      30436
+[lb2:Standby] >
+
+
+Ein Manuelles Schwenken kann über das CLI initiert werden indem der Befehl
+"disable" oder "offline" bzw die kurzform off verwendet wird, damit wird das 
+senden des Heartbeats für 30 Sekunden unterbrochen und die Gegenseite wird,
+wenn möglich die Ressourcen übernehmen.
+
+
+
+6. Troubleshooting
+------------------
+Wenn der receiver kein Heartbeat der Gegenstelle mehr empfängt,
+dann wird davon ausgegangen, dass die andere Seite down ist und es werden 
+die Ressourcen gestartet.
+
+Zu einem Problem könnte es also kommen, wenn auf einer Node die pha Software 
+gestoppt wird, aber die Ressourcen nicht, dann würde die noch aktive pha Node
+die Ressourcen ebenfalls starten und die Ressourcen könnten dann auf mehreren 
+Nodes gleichzeitig laufen, was z.B. gerade bei IP Addressen, mit an Sicherheit
+grenzender wahrscheinlichkeit zu Netzwerk Problemen führen wird!!
+
+Deswegen sollte immer darauf geachtet werden, wenn eine Clusterseite offline 
+genommen wird wie folgt vorzugehen:
+
+[root@lb1:Active] pha # ./bin/pha-cli.pl
+[lb1:Active] > stat                     
+$VAR1 = {                               
+          'CLI' => 1,                   
+          'RES_ipaddr' => 'UP',         
+          'STATUS' => 'ONLINE',         
+          'RECEIVER_IN' => undef,       
+          'SUPERVISE' => 1,             
+          'RES_service' => 'UP',        
+          'SENDER_RUN' => 1             
+        };                              
+sender:         16172                   
+receiver:       16174                   
+supervise:      16176                   
+[lb1:Active] > stop                     
+[lb1:Active] > stat                     
+$VAR1 = {                               
+          'CLI' => 1,                   
+          'RES_ipaddr' => 'UP',         
+          'STATUS' => undef,            
+          'RECEIVER_IN' => undef,      
+          'SUPERVISE' => 0,            
+          'RES_service' => 'UP',       
+          'SENDER_RUN' => 0            
+        };                             
+sender:         0                      
+receiver:       0                      
+supervise:      0                      
+[lb1:NOTRUNNING] > res stop            
+[lb1:NOTRUNNING] > stat                
+$VAR1 = {                              
+          'CLI' => 1,                  
+          'RES_ipaddr' => 'DOWN',      
+          'STATUS' => undef,           
+          'RECEIVER_IN' => undef,      
+          'SUPERVISE' => 0,            
+          'RES_service' => 'DOWN',     
+          'SENDER_RUN' => 0            
+        };                             
+sender:         0                      
+receiver:       0                      
+supervise:      0                      
+[lb1:NOTRUNNING] >
