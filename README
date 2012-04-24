@@ -1,6 +1,6 @@
 
 #####################################################
-#	pha - Perl High Availabillity Toolkit       #
+#	pha - Perl High Availability Toolkit       #
 #####################################################
 
 Software to keep scriptable service(s) alive on one of two nodes.

@@ -1,20 +1,21 @@
 #
 # Globales #
 #
-DEBUG=0
-INSTALLDIR=/opt/pha
-LOGPATH=/opt/pha/var/log
-DAEMON=1
 PINGTIMEOUT=2.1
 PORT=4711
 # supervise loop intervall in ms
-SUPERVISE_INT=2000
+SUPERVISE_INT=3000
 
 # Cluster Nodes and ID's (ID 1 ^= 1. position in the list)
 NODES=lb1 lb2
 
 # ICMP Test IP, possible the Default Gateway
 GW=192.168.42.1
+
+DEBUG=0
+INSTALLDIR=/opt/pha
+LOGPATH=/opt/pha/var/log
+DAEMON=1
 
 #
 # Ressouren #
@@ -27,4 +28,5 @@ GW=192.168.42.1
 #RES_test=/ONLINE
 RES_service=httpd
 RES_ipaddr=192.168.42.20/24 eth0
+
 

@@ -12,6 +12,8 @@ sub sighandler;
 $SIG{'INT'}  = 'sighandler';
 $SIG{'TERM'} = 'sighandler';
 
+my $LOOPTIME = 200;
+
 # MAIN()
 if ($CONFIG{DAEMON} == 1) {
         # we are a Daemon, Fork into background
@@ -49,7 +51,7 @@ sub init_sender {
 	mylog "$0 process startet";
         # udp Server with own prozess
         while (1) {
-		myusleep(200);
+		myusleep($LOOPTIME);
 		udp_send();
         }
 }

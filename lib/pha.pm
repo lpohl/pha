@@ -151,7 +151,7 @@ sub icmp_ping {
 }
 sub check_defaultroute {
         my $gw = shift || $CONFIG{GW};
-        my $ret = `ip r s|grep $gw |grep default 2>/dev/null`;
+        my $ret = `ip r s|grep ^default 2>/dev/null`;
         chomp($ret);
         #mylog "check_defaultroute() $ret";
         if ($ret) { return 1; } else { return undef;}

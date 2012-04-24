@@ -15,6 +15,8 @@ my ($SRVsocket, $SRVselect);
 $SIG{'INT'}  = 'sighandler';
 $SIG{'TERM'} = 'sighandler';
 
+my $LOOPTIME = 200;
+
 # MAIN()
 if ($CONFIG{DAEMON} == 1) {
         # we are a Daemon, Fork into background
@@ -58,7 +60,7 @@ sub init_receiver {
 
         while (1) {
                 udp_server();
-                myusleep(150)
+                myusleep($LOOPTIME)
         }
 }
 
