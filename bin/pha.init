@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# Startup/shutdown script for the PHA System
+#
+# Linux chkconfig stuff:
+#
+# chkconfig: 2345 55 25
+# description: Startup/shutdown script for the PHA System
+#
+# config: /opt/pha/etc/config
+# pidfile: /opt/pha/var/run/supervise
+
+# Source function library.
+. /etc/init.d/functions
+
+DAEMON=PHA
+
+prog=PHA
+
+start () {
+        echo -n $"Starting $prog: "
+        # start daemon
+        ps axf > /tmp/ps.$$
+        grep -q pha- /tmp/ps.$$
+        if [ $? == 1 ]; then
+                rm -f /opt/pha/var/run/*
+        fi
+        rm -f /tmp/ps.$$
+        echo -en "start\nq\n" | /usr/local/bin/pha-cli
+
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ] && touch /var/lock/subsys/pha
+        return $RETVAL
+}
+
+stop () {
+        # stop daemon
+        echo -n $"Stopping $prog: "
+        echo -en "stop\nq\n"  | /usr/local/bin/pha-cli
+        rm -f /opt/pha/var/run/*
+
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ] && rm -f /var/lock/subsys/pha
+}
+
+restart() {
+        stop
+        start
+}
+
+case $1 in
+        start)
+                start
+        ;;
+        stop)
+                stop
+        ;;
+        restart)
+                restart
+        ;;
+        condrestart)
+                [ -f /var/lock/subsys/pha ] && restart || :
+        ;;
+        status)
+                echo -en "status\nq\n" | /usr/local/bin/pha-cli
+                RETVAL=$?
+        ;;
+        *)
+
+        echo $"Usage: $prog {start|stop|restart|condrestart|status}"
+        exit 3
+esac
+
+exit $RETVAL
+
